@@ -8,10 +8,9 @@ import axios, { AxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast, useToast } from '@/components/ui/use-toast';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { FormDataSchema } from '@/schemas/schema'
-import { ApiResponse } from '@/types/ApiResponse';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ApiResponse } from '@/types/ApiResponse'
 
 const AccessTypeSchema = z.object({
     email: z.string().email('Invalid email address'),
@@ -36,12 +35,12 @@ export default function StaffRegistrationForm() {
     const processForm: SubmitHandler<Inputs> = async data => {
         setIsSubmitting(true);
         try {
-            const response = await axios.post<ApiResponse>('/api/register-staff', data);
+            const response = await axios.post<ApiResponse>('/api/sign-up', data);
             toast({
                 title: 'Success',
-                description: 'response.data.message',
+                description: response.data.message,
             });
-            setGeneratedPassword(response.data.data.password); // Assuming the password is returned in the response
+            setGeneratedPassword(response.data!.password!); // Assuming the password is returned in the response
             setIsDialogOpen(true);
         } catch (error) {
             console.error('Error during staff registration:', error);
@@ -147,25 +146,27 @@ export default function StaffRegistrationForm() {
             </form>
 
             {isDialogOpen && (
-                <div className='fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center'>
-                    <div className='bg-white p-8 rounded shadow-lg'>
-                        <h2 className='text-xl font-bold mb-4'>Your Generated Password</h2>
-                        <p className='mb-4'>{generatedPassword}</p>
-                        <button
-                            onClick={handleCopyPassword}
-                            className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700'
-                        >
-                            Copy Password
-                        </button>
-                        <button
-                            onClick={handleCloseDialog}
-                            className='ml-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700'
-                        >
-                            Done
-                        </button>
-                    </div>
-                </div>
+                <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Your Generated Password</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                <p className='mb-4'>{generatedPassword}</p>
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <Button onClick={handleCopyPassword} className='mr-4'>
+                                Copy Password
+                            </Button>
+                            <Button onClick={handleCloseDialog}>
+                                Continue
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             )}
         </section>
     )
 }
+//jahwmrdm
+//amir@gmail.com

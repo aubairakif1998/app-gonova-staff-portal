@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import dbConnect from '@/lib/dbConnect';
-import UserModel from '@/model/User';
+import StaffUser from '@/model/StaffUser';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,18 +16,18 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials: any): Promise<any> {
         try {
           await dbConnect();
-          const user = await UserModel.findOne({
+          const user = await StaffUser.findOne({
             $or: [
               { email: credentials.identifier },
-              { companyName: credentials.identifier },
+              // { companyName: credentials.identifier },
             ],
           });
           if (!user) {
             throw new Error('No user found with this email');
           }
-          if (!user.isVerified) {
-            throw new Error('Please verify your account before logging in');
-          }
+          // if (!user.isVerified) {
+          //   throw new Error('Please verify your account before logging in');
+          // }
           const isPasswordCorrect = await bcrypt.compare(
             credentials.password,
             user.password
@@ -47,18 +47,18 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token._id = user._id?.toString(); // Convert ObjectId to string
-        token.isVerified = user.isVerified;
+        // token.isVerified = user.isVerified;
         token.email = user.email;
-        token.username = user.username;
+        // token.username = user.username;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         session.user._id = token._id;
-        session.user.isVerified = token.isVerified;
+        // session.user.isVerified = token.isVerified;
         session.user.email = token.email;
-        session.user.username = token.username;
+        // session.user.username = token.username;
       }
       return session;
     },

@@ -111,12 +111,12 @@ function DesktopNav() {
           <div className='text-sm font-bold'>Loads</div>
         </NavItem>
 
-        <NavItem href="/loads" label="Loads">
+        <NavItem href="/shippers" label="Shippers">
           {/* <Monitor className="h-5 w-5" /> */}
           <div className='text-sm font-bold'>Shippers</div>
         </NavItem>
 
-        <NavItem href="/loads" label="Loads">
+        <NavItem href="/carriers" label="Carriers">
           {/* <Monitor className="h-5 w-5" /> */}
           <div className='text-sm font-bold'>Carriers</div>
         </NavItem>

@@ -1,4 +1,4 @@
-import UserModel from '@/model/User';
+import UserModel from '@/model/StaffUser';
 import { getServerSession } from 'next-auth/next';
 import dbConnect from '@/lib/dbConnect';
 import { User } from 'next-auth';

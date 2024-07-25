@@ -1,65 +1,41 @@
 import dbConnect from '@/lib/dbConnect';
-import UserModel, { IUser } from '@/model/User';
+import StaffUser, { IStaffUser } from '@/model/StaffUser';
 import bcrypt from 'bcryptjs';
-import { sendVerificationEmail } from '@/helpers/sendVerificationEmail';
 
 export async function POST(request: Request) {
   await dbConnect();
 
-
   try {
-    const { email, password, companyName, phoneNumber, street, city, state, zip } = await request.json();
+    const { email, accessType } = await request.json();
 
-    // Check if username or email already exist
-    const existingUser = await UserModel.findOne({ $or: [{ companyName }, { email }, { phoneNumber }] });
+    // Check if email already exists
+    const existingStaffUser = await StaffUser.findOne({ email });
 
-    if (existingUser) {
-      if (existingUser.email === email) {
-        return Response.json({ success: false, message: 'User already exists with this email' }, { status: 400 });
-      } else if (existingUser.companyName === companyName) {
-        return Response.json({ success: false, message: 'Company name is already taken' }, { status: 400 });
-      }
-      else {
-        return Response.json({ success: false, message: 'Phone Number is already taken' }, { status: 400 });
-      }
+    if (existingStaffUser) {
+      return new Response(JSON.stringify({ success: false, message: 'Staff user already exists with this email' }), { status: 400 });
     }
 
-    // Generate verification code
-    // const verifyCode =Math.floor(100000 + Math.random() * 900000).toString();
-    const verifyCode = '123456';
+    // Generate a random password
+    const generatedPassword = Math.random().toString(36).slice(-8); // Generates a random password of length 8
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 1);
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
     // Create new user
-    const newUser: IUser = new UserModel({
+    const newUser: IStaffUser = new StaffUser({
       email,
       password: hashedPassword,
-      verifyCode,
-      verifyCodeExpiry: expiryDate,
-      companyName, // Add other mandatory fields as needed
-      street,
-      city,
-      state,
-      zip,
-      phoneNumber,
-      isVerified: false,
-      shipments: []
+      accessType,
+      // isVerified: false, // Assuming you have an isVerified field
     });
 
     await newUser.save();
 
-    // Send verification email
-    const emailResponse = await sendVerificationEmail(email, companyName, verifyCode);
-    if (!emailResponse.success) {
-      return Response.json({ success: false, message: emailResponse.message }, { status: 500 });
-    }
-
-    return Response.json({ success: true, message: 'User registered successfully. Please verify your account.' }, { status: 201 });
+    // Respond with success and the generated password
+    return new Response(JSON.stringify({ success: true, message: 'User registered successfully', password: generatedPassword }), { status: 201 });
 
   } catch (error) {
     console.error('Error registering user:', error);
-    return Response.json({ success: false, message: 'Error registering user' }, { status: 500 });
+    return new Response(JSON.stringify({ success: false, message: 'Error registering user' }), { status: 500 });
   }
 }
