@@ -55,6 +55,6 @@ const CarrierSchema: Schema<ICarrier> = new Schema({
     timestamps: true, // Adds createdAt and updatedAt fields
 });
 
-const CarrierModel = mongoose.model<ICarrier>('Carrier', CarrierSchema);
+const CarrierModel = mongoose.models.Carrier || mongoose.model<ICarrier>('Carrier', CarrierSchema);
 
 export default CarrierModel;

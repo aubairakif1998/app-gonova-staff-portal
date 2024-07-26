@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  if (!token && url.pathname.startsWith('/dashboard') ) {
+  if (!token && url.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
 
@@ -36,3 +36,7 @@ export async function middleware(request: NextRequest) {
 // MONGODB_URI=mongodb+srv://admin:admin@novatech-cluster0.k7gqe87.mongodb.net/Nova-ShipperDB?retryWrites=true&w=majority&appName=NOVATech-Cluster0
 // RESEND_API_KEY=re_3qWLgDeN_HKAYtfE3UpgJBE51wBPJbJZz
 // NEXTAUTH_URL=http://localhost:3000/
+
+
+//4pb71ikq
+//aubairakif1998
