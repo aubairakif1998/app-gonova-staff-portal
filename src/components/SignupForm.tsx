@@ -14,6 +14,7 @@ import { ApiResponse } from '@/types/ApiResponse'
 
 const AccessTypeSchema = z.object({
     email: z.string().email('Invalid email address'),
+    password: z.string().min(8, 'Password must be at least 8 characters long'),
     accessType: z.enum(['contributor', 'admin', 'viewer'], {
         errorMap: () => ({ message: 'Invalid Access Type' })
     }),
@@ -26,7 +27,6 @@ export default function StaffRegistrationForm() {
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [generatedPassword, setGeneratedPassword] = useState('');
 
     const { register, handleSubmit, formState: { errors } } = useForm<Inputs>({
         resolver: zodResolver(AccessTypeSchema)
@@ -40,7 +40,6 @@ export default function StaffRegistrationForm() {
                 title: 'Success',
                 description: response.data.message,
             });
-            setGeneratedPassword(response.data!.password!); // Assuming the password is returned in the response
             setIsDialogOpen(true);
         } catch (error) {
             console.error('Error during staff registration:', error);
@@ -55,22 +54,6 @@ export default function StaffRegistrationForm() {
             setIsSubmitting(false);
         }
     }
-
-    const handleCopyPassword = async () => {
-        try {
-            await navigator.clipboard.writeText(generatedPassword);
-            toast({
-                title: 'Copied',
-                description: 'Password copied to clipboard',
-            });
-        } catch (err) {
-            toast({
-                title: 'Copy Failed',
-                description: 'Failed to copy the password. Please try again.',
-                variant: 'destructive',
-            });
-        }
-    };
 
     const handleCloseDialog = () => {
         setIsDialogOpen(false);
@@ -111,6 +94,29 @@ export default function StaffRegistrationForm() {
 
                 <div className='mb-4'>
                     <label
+                        htmlFor='password'
+                        className='block text-sm font-medium leading-6 text-gray-900'
+                    >
+                        Password
+                    </label>
+                    <div className='mt-2'>
+                        <input
+                            id='password'
+                            type='password'
+                            {...register('password')}
+                            autoComplete='new-password'
+                            className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-black sm:text-sm sm:leading-6'
+                        />
+                        {errors.password?.message && (
+                            <p className='mt-2 text-sm text-red-400'>
+                                {errors.password.message}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                <div className='mb-4'>
+                    <label
                         htmlFor='accessType'
                         className='block text-sm font-medium leading-6 text-gray-900'
                     >
@@ -124,7 +130,6 @@ export default function StaffRegistrationForm() {
                         >
                             <option value="contributor">Contributor</option>
                             <option value="admin">Admin</option>
-                            <option value="viewer">Viewer</option>
                         </select>
                         {errors.accessType?.message && (
                             <p className='mt-2 text-sm text-red-400'>
@@ -138,7 +143,7 @@ export default function StaffRegistrationForm() {
                     <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className={`w-full text-black border-2 border-black ${isSubmitting ? 'bg-gray-500 cursor-not-allowed' : 'hover:bg-black hover:text-white'} transition duration-300 ease-in-out`}
+                        className={`w-full text-gray-100 border-2 border-black ${isSubmitting ? 'bg-gray-500 cursor-not-allowed' : 'hover:bg-black hover:text-white'} transition duration-300 ease-in-out`}
                     >
                         {isSubmitting ? <Loader2 className="animate-spin" /> : 'Submit'}
                     </Button>
@@ -149,15 +154,12 @@ export default function StaffRegistrationForm() {
                 <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Your Generated Password</AlertDialogTitle>
+                            <AlertDialogTitle>Registration Successful</AlertDialogTitle>
                             <AlertDialogDescription>
-                                <p className='mb-4'>{generatedPassword}</p>
+                                <p className='mb-4'>Your registration was successful.</p>
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <Button onClick={handleCopyPassword} className='mr-4'>
-                                Copy Password
-                            </Button>
                             <Button onClick={handleCloseDialog}>
                                 Continue
                             </Button>
@@ -168,5 +170,3 @@ export default function StaffRegistrationForm() {
         </section>
     )
 }
-//jahwmrdm
-//amir@gmail.com

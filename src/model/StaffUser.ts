@@ -5,7 +5,7 @@ export interface IStaffUser extends Document {
   email: string;
   // verifyCode: string;
   // verifyCodeExpiry: Date;
-  // isVerified: boolean;
+  isVerified: boolean;
   password: string;
   accessType: string;
 }
@@ -33,10 +33,10 @@ const StaffUserSchema: Schema<IStaffUser> = new Schema({
   //   type: Date,
   //   required: [true, 'Verify Code Expiry is required'],
   // },
-  // isVerified: {
-  //   type: Boolean,
-  //   default: false,
-  // },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
   accessType: {
     type: String,
     required: [true, 'AccessType is required'],
