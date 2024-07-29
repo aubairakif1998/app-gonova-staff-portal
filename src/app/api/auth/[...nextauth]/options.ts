@@ -18,8 +18,7 @@ export const authOptions: NextAuthOptions = {
           await dbConnect();
           const user = await StaffUser.findOne({
             $or: [
-              { email: credentials.identifier },
-              { companyName: credentials.identifier },
+              { email: credentials.identifier }
             ],
           });
           if (!user) {
