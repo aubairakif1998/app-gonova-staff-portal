@@ -7,8 +7,8 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "Novatech Freight Shipping Quotes | LTL &  Truckload Services",
-  description: "Novatech Freight Shipping Quotes | LTL &  Truckload Services",
+  title: "Staff Portal",
+  description: "Staff Portal - Novatech Freight",
 };
 interface RootLayoutProps {
   children: React.ReactNode;
