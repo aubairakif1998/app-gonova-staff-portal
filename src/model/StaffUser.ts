@@ -41,6 +41,8 @@ const StaffUserSchema: Schema<IStaffUser> = new Schema({
     type: String,
     required: [true, 'AccessType is required'],
   },
+}, {
+  timestamps: true,
 });
 
 const StaffUser: Model<IStaffUser> = mongoose.models.StaffUser || mongoose.model<IStaffUser>('StaffUser', StaffUserSchema);

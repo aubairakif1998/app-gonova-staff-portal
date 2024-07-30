@@ -26,6 +26,7 @@ export interface ICarrier extends Document {
     address: string;
     vehicleInformation: VehicleInformation;
     assignedLoads: Types.ObjectId[]; // References to LoadTransactions
+    createdBy: string;
 }
 
 const CarrierSchema: Schema<ICarrier> = new Schema({
@@ -50,7 +51,12 @@ const CarrierSchema: Schema<ICarrier> = new Schema({
         driverName: { type: String, required: true },
         driverContactNo: { type: String, required: true },
     },
+
     assignedLoads: [{ type: Schema.Types.ObjectId, ref: 'Load' }], // References to LoadTransactions
+    createdBy: {
+        type: String,
+        required: true,
+    }
 }, {
     timestamps: true, // Adds createdAt and updatedAt fields
 });

@@ -13,7 +13,7 @@ const generateId = (): string => {
 
 export interface IShipment extends Document {
     shipmentID: string;
-    userId: Types.ObjectId;
+    shipperId: Types.ObjectId;
     serviceType: string;
     requestingLoadingDate: Date;
     arrivalDate: Date;
@@ -30,14 +30,14 @@ export interface IShipment extends Document {
     };
     weight: number;
     quantity: number;
-    contract: Types.ObjectId; // Reference to Contract
-    status: "upcoming" | "transit" | "history"; // Status field
+    contract: Types.ObjectId;
+    status: "Active" | "Non-Active";
 }
 
 // Define Shipment schema with reference to User and Contract schemas
 const ShipmentSchema: Schema<IShipment> = new Schema({
     shipmentID: { type: String, default: generateId, required: true, unique: true }, // Custom ID of 6 characters
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
+    shipperId: { type: Schema.Types.ObjectId, ref: 'Shipper', required: true }, // Reference to User
     serviceType: { type: String, required: true },
     requestingLoadingDate: { type: Date, required: true },
     arrivalDate: { type: Date, required: true },
@@ -55,13 +55,15 @@ const ShipmentSchema: Schema<IShipment> = new Schema({
     weight: { type: Number, required: true },
     quantity: { type: Number, required: true },
     contract: { type: Schema.Types.ObjectId, ref: 'Contract' },
-    status: { type: String, enum: ["upcoming", "transit", "history"], required: true },
+    status: { type: String, enum: ["Active", "Non-Active"], required: true },
+}, {
+    timestamps: true,
 });
 
 const ShipmentModel = mongoose.models.Shipment || mongoose.model<IShipment>('Shipment', ShipmentSchema);
 export interface IContract extends Document {
-    shipmentID: string; // Custom ID of 6 characters
-    userId: Types.ObjectId;
+    shipmentID: string;
+    shipperId: Types.ObjectId;
     carrierId: Types.ObjectId;
     userEmail: string;
     carrierEmail: string;
@@ -77,7 +79,7 @@ export interface IContract extends Document {
 
 // Define Contract schema with reference to Shipment and User schemas
 const ContractSchema: Schema<IContract> = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Reference to User
+    shipperId: { type: Schema.Types.ObjectId, ref: 'Shipper', required: true }, // Reference to User
     carrierId: { type: Schema.Types.ObjectId, ref: 'Carrier', required: true }, // Reference to Carrier
     userEmail: { type: String, required: true },
     carrierEmail: { type: String, required: true },
@@ -88,6 +90,8 @@ const ContractSchema: Schema<IContract> = new Schema({
     signedDate: { type: Date, required: true },
     pickupLocation: { type: String, required: true },
     dropoffLocation: { type: String, required: true },
+}, {
+    timestamps: true,
 });
 
 const ContractModel = mongoose.models.Contract || mongoose.model<IContract>('Contract', ContractSchema);

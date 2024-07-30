@@ -14,7 +14,7 @@ export interface IShipper extends Document {
 }
 
 
-const UserSchema: Schema<IShipper> = new Schema({
+const ShipperSchema: Schema<IShipper> = new Schema({
     companyName: {
         type: String,
         required: [true, 'CompanyName is required'],
@@ -62,8 +62,10 @@ const UserSchema: Schema<IShipper> = new Schema({
         default: false,
     },
     shipments: [{ type: Schema.Types.ObjectId, ref: 'Shipment' }]
+}, {
+    timestamps: true,
 });
 
-const ShipperModel: Model<IShipper> = mongoose.models.User || mongoose.model<IShipper>('User', UserSchema);
+const ShipperModel: Model<IShipper> = mongoose.models.Shipper || mongoose.model<IShipper>('Shipper', ShipperSchema);
 
 export default ShipperModel; 

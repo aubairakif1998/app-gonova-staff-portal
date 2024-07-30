@@ -35,7 +35,7 @@ export async function GET(request: Request) {
         // Build the query object
         const query: any = {};
         if (companyName) query.companyName = { $regex: companyName, $options: 'i' };
-        if (email) query.email = { $regex: email, $options: 'i' };
+        if (email) query['contacts.primary.email'] = { $regex: email, $options: 'i' };
         if (transportMCNumber) query.transportMCNumber = { $regex: transportMCNumber, $options: 'i' };
         if (dot) query.dot = { $regex: dot, $options: 'i' };
 

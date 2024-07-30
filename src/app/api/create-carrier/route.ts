@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
             contacts: carrierData.contacts,
             vehicleInformation: carrierData.vehicleInformation,
             assignedLoads: [],
+            createdBy: _user.email
         }
 
         console.log('finalData', finalData)
