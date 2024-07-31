@@ -17,15 +17,16 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Shipper } from '@/services/shipperService';
+import { Shipper } from '@/types/Shipper';
 
 interface ShipperTableProps {
     shippers: Shipper[];
-    onViewShipments: (shipperId: string) => void;
+    onViewShipper: (shipperId: string) => void;
+    // onEditShipper: (shipperId: string) => void;
     pageCount: number;
 }
 
-const ShipperTable: React.FC<ShipperTableProps> = ({ shippers, onViewShipments, pageCount }) => {
+const ShipperTable: React.FC<ShipperTableProps> = ({ shippers, onViewShipper, pageCount }) => {
     const columns: ColumnDef<Shipper>[] = [
         {
             accessorKey: 'companyName',
@@ -41,8 +42,12 @@ const ShipperTable: React.FC<ShipperTableProps> = ({ shippers, onViewShipments, 
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => (
-                <Button className="bg-black text-white hover:bg-gray-600" onClick={() => onViewShipments(row.original._id)}>View Shipments</Button>
-            ),
+                <>
+                    <Button className="bg-black text-white hover:bg-gray-600" onClick={() => onViewShipper(row.original._id)}>View</Button>
+
+                    {/* <Button className="bg-black text-white hover:bg-gray-600" onClick={() => onEditShipper(row.original._id)}>Edit</Button> */}
+
+                </>),
         },
     ];
 
@@ -59,11 +64,15 @@ const ShipperTable: React.FC<ShipperTableProps> = ({ shippers, onViewShipments, 
         <div>
             <div className="rounded-md border bg-white shadow-lg">
                 <Table>
+
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
+                            <TableRow key={headerGroup.id} className="bg-gray-50 border-b">
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="font-semibold text-gray-700 text-center">
+                                    <TableHead
+                                        key={header.id}
+                                        className="font-semibold text-gray-700 text-center border-r last:border-r-0"
+                                    >
                                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                     </TableHead>
                                 ))}
@@ -73,9 +82,12 @@ const ShipperTable: React.FC<ShipperTableProps> = ({ shippers, onViewShipments, 
                     <TableBody>
                         {table.getRowModel().rows.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow key={row.id} className="hover:bg-gray-50">
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-4 px-6 text-center">
+                                <TableRow key={row.id} className="hover:bg-gray-50 transition duration-200 border-b">
+                                    {row.getVisibleCells().map(cell => (
+                                        <TableCell
+                                            key={cell.id}
+                                            className="py-4 px-6 text-center border-r last:border-r-0"
+                                        >
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}

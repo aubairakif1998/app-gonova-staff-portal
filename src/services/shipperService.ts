@@ -1,9 +1,7 @@
 // services/shipperService.ts
-export interface Shipper {
-    _id: string;
-    companyName: string;
-    email: string;
-}
+
+import { Shipper } from "@/types/Shipper";
+
 
 export interface FetchShippersResponse {
     success: boolean;
@@ -59,9 +57,33 @@ export const fetchShipperDetails = async (shipperId: string | string[]) => {
 // In your fetchShippers function in shipperService.ts
 export const fetchShippers = async (page: number, companyName: string, email: string) => {
     try {
-        const response = await fetch(`/api/get-shippers?page=${page}&limit=10&companyName=${companyName}&email=${email}`);
+        const response = await fetch(`/api/get-shippers?page=${page}&limit=10&companyName=${companyName}&email=${email}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
         const data = await response.json();
         return data;
+    } catch (error) {
+        console.error('Error fetching shippers:', error);
+        return { success: false, shippers: [], totalPages: 0 };
+    }
+};
+
+export const fetchAllShippers = async () => {
+    try {
+        const response = await fetch(`/api/get-shippers`);
+        const data = await response.json();
+
+        if (data.success) {
+            return {
+                success: true,
+                shippers: data.shippers as Shipper[]
+            };
+        } else {
+            return { success: false, shippers: [], totalPages: 0 };
+        }
     } catch (error) {
         console.error('Error fetching shippers:', error);
         return { success: false, shippers: [], totalPages: 0 };

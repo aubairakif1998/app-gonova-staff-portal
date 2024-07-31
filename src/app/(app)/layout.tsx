@@ -42,6 +42,8 @@ import { useSession } from 'next-auth/react';
 import DashboardBreadcrumb from './DashboardBreadcrumb';
 import { ClipLoader } from 'react-spinners';
 import { Progress } from '@radix-ui/react-progress';
+import { RecoilRoot } from 'recoil';
+
 export default function DashboardLayout({
   children
 }: {
@@ -68,25 +70,26 @@ export default function DashboardLayout({
     );
   }
   return (
-    <Providers>
-      <main className="flex min-h-screen w-full flex-col bg-muted/40">
-        <DesktopNav />
-        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
-            <MobileNav />
-            <DashboardBreadcrumb />
-            {/* <SearchInput /> */}
+    <RecoilRoot>
+      <Providers>
+        <main className="flex min-h-screen w-full flex-col bg-muted/40">
+          <DesktopNav />
+          <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+              <MobileNav />
+              <DashboardBreadcrumb />
+              {/* <SearchInput /> */}
 
-            <div className="relative ml-auto flex-1 md:grow-0">
-              <UserWidget />
-            </div>
-          </header>
-          <main className="grid flex-1 items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
-            {children}
-          </main>
-        </div>
-      </main>
-    </Providers>
+              <div className="relative ml-auto flex-1 md:grow-0">
+                <UserWidget />
+              </div>
+            </header>
+            <main className="grid flex-1 items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
+              {children}
+            </main>
+          </div>
+        </main>
+      </Providers> </RecoilRoot>
   );
 }
 

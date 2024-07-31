@@ -1,5 +1,5 @@
 // components/ShipmentTable.tsx
-"use client"
+"use client";
 
 import React from 'react';
 import {
@@ -17,7 +17,12 @@ interface ShipmentTableProps {
     shipments: Shipment[];
 }
 
-const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, }) => {
+const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments }) => {
+    const createLoad = (shipmentID: string) => {
+        // Add your logic to create a load here
+        console.log(`Creating load for shipment ID: ${shipmentID}`);
+    };
+
     const columns: ColumnDef<Shipment>[] = [
         {
             accessorKey: 'shipmentID',
@@ -38,11 +43,11 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, }) => {
             cell: info => new Date(info.getValue() as string).toLocaleDateString(),
         },
         {
-            accessorKey: 'pickupLocationPostalCode',
+            accessorKey: 'pickupLocation',
             header: 'Pickup Location',
         },
         {
-            accessorKey: 'deliveryLocationPostalCode',
+            accessorKey: 'deliveryLocation',
             header: 'Delivery Location',
         },
         {
@@ -79,6 +84,15 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, }) => {
             accessorKey: 'quantity',
             header: 'Quantity',
         },
+        {
+            id: 'actions',
+            header: 'Actions',
+            cell: ({ row }) => (
+                <Button size='sm' onClick={() => createLoad(row.original.shipmentID)}>
+                    Create Load
+                </Button>
+            ),
+        },
     ];
 
     const table = useReactTable({
@@ -92,12 +106,16 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, }) => {
     return (
         <div>
             <div className="rounded-md border bg-white shadow-lg">
-                <Table className="min-w-full border border-gray-300">
+                <Table className="min-w-full border border-gray-300 table-auto">
+
                     <TableHeader>
                         {table.getHeaderGroups().map(headerGroup => (
-                            <TableRow key={headerGroup.id} className="bg-gray-100">
+                            <TableRow key={headerGroup.id} className="bg-gray-50 border-b">
                                 {headerGroup.headers.map(header => (
-                                    <TableHead key={header.id} className="font-semibold text-gray-700 text-center">
+                                    <TableHead
+                                        key={header.id}
+                                        className="font-semibold text-gray-700 text-center border-r last:border-r-0"
+                                    >
                                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                     </TableHead>
                                 ))}
@@ -107,9 +125,12 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments, }) => {
                     <TableBody>
                         {table.getRowModel().rows.length ? (
                             table.getRowModel().rows.map(row => (
-                                <TableRow key={row.id} className="hover:bg-gray-50 transition duration-200">
+                                <TableRow key={row.id} className="hover:bg-gray-50 transition duration-200 border-b">
                                     {row.getVisibleCells().map(cell => (
-                                        <TableCell key={cell.id} className="py-4 px-6 text-center">
+                                        <TableCell
+                                            key={cell.id}
+                                            className="py-4 px-6 text-center border-r last:border-r-0"
+                                        >
                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                         </TableCell>
                                     ))}

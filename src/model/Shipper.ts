@@ -3,16 +3,14 @@ import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export interface IShipper extends Document {
     companyName: string;
-    street: string;
+    locationAddress: string;
     city: string;
-    state: string;
     zip: string;
     email: string;
     isVerified: boolean;
     phoneNumber: string;
     shipments: Types.ObjectId[];
 }
-
 
 const ShipperSchema: Schema<IShipper> = new Schema({
     companyName: {
@@ -21,19 +19,13 @@ const ShipperSchema: Schema<IShipper> = new Schema({
         trim: true,
         unique: true,
     },
-    street: {
+    locationAddress: {
         type: String,
         required: true,
         trim: true,
         minlength: 2, maxlength: 30
     },
     city: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 2, maxlength: 30
-    },
-    state: {
         type: String,
         required: true,
         trim: true,

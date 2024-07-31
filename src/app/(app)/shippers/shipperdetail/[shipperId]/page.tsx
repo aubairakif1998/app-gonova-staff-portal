@@ -3,9 +3,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { fetchShipperDetails, Shipper, Shipment } from '@/services/shipperService';
+import { fetchShipperDetails, Shipment } from '@/services/shipperService';
 import { ClipLoader } from 'react-spinners';
 import ShipmentTable from '@/components/ShipmentTable';
+import { Shipper } from '@/types/Shipper';
 
 const ShipperByIdPage: React.FC = () => {
     const { shipperId } = useParams();
@@ -23,13 +24,13 @@ const ShipperByIdPage: React.FC = () => {
                 const { success, shipper, shipments } = await fetchShipperDetails(shipperId);
                 if (success) {
                     if (shipper === null) {
-                        router.push('/404');
+                        router.push('/shippers/shipperdetail/404');
                     } else {
                         setShipper(shipper);
                         setShipments(shipments);
                     }
                 } else {
-                    router.push('/404');
+                    router.push('/shippers/shipperdetail/404');
                 }
                 setLoading(false);
             };

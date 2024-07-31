@@ -20,7 +20,6 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     DropdownMenu,
@@ -40,6 +39,8 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button"
+
 
 export type LoadTransaction = {
     id: string;
@@ -51,6 +52,7 @@ export type LoadTransaction = {
     shipmentRequirement: string;
     lastKnownLocation: string;
 };
+
 
 const createColumns = (router: ReturnType<typeof useRouter>): ColumnDef<LoadTransaction>[] => [
     {
@@ -156,7 +158,8 @@ const createColumns = (router: ReturnType<typeof useRouter>): ColumnDef<LoadTran
     },
 ];
 
-export default function ProductsPage({ searchParams }: { searchParams: { q: string; offset: string } }) {
+
+export default function LoadsPage({ searchParams }: { searchParams: { q: string; offset: string } }) {
     const router = useRouter();
     const columns = React.useMemo(() => createColumns(router), [router]);
 
@@ -244,7 +247,9 @@ export default function ProductsPage({ searchParams }: { searchParams: { q: stri
             rowSelection,
         },
     });
-
+    const createLoad = () => {
+        router.push('/loads/create');
+    };
     return (
         <div className="w-full">
             <div className="flex items-center py-4">
@@ -256,6 +261,8 @@ export default function ProductsPage({ searchParams }: { searchParams: { q: stri
                     }
                     className="max-w-sm"
                 />
+                <Button onClick={createLoad} >Create Load</Button>
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" className="ml-auto">

@@ -17,6 +17,7 @@ interface RootLayoutProps {
 export default async function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" >
+
       <AuthProvider>
         <body className={inter.className}>
           {children}

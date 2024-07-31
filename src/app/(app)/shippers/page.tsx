@@ -1,10 +1,13 @@
 "use client"
 import React, { useEffect, useState } from 'react';
 import ShipperTable from '@/components/ShipperTable';
-import { fetchShippers, Shipper } from '@/services/shipperService';
+import { fetchShippers } from '@/services/shipperService';
 import { ClipLoader } from 'react-spinners';
 import { Progress } from '@radix-ui/react-progress';
 import { useRouter } from "next/navigation";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Shipper } from '@/types/Shipper';
 
 const ShippersPage: React.FC = () => {
     const [shippers, setShippers] = useState<Shipper[]>([]);
@@ -29,29 +32,41 @@ const ShippersPage: React.FC = () => {
     }, [page, companyName, email]);
 
     const handleViewShipments = (shipperId: string) => {
-        router.push(`/shippers/${shipperId}`)
+        router.push(`/shippers/shipperdetail/${shipperId}`)
         console.log('View shipments for:', shipperId);
     };
+
 
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Shippers</h1>
             <div className="mb-4 flex space-x-2">
-                <input
+                <Input type="text"
+                    placeholder="Search by company name"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    className="bg-white border border-gray-300 rounded p-2" />
+                {/* <input
                     type="text"
                     placeholder="Search by company name"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     className="border border-gray-300 rounded p-2"
-                />
-                <input
+                /> */}
+
+                <Input type="email"
+                    placeholder="Search by email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-white border border-gray-300 rounded p-2" />
+                {/* <input
                     type="email"
                     placeholder="Search by email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="border border-gray-300 rounded p-2"
-                />
-                <button onClick={() => setPage(1)} className="bg-black text-white rounded p-2 hover:bg-black">Search</button>
+                /> */}
+                <Button onClick={() => setPage(1)} className="bg-black text-white rounded p-2 hover:bg-black">Search</Button>
             </div>
             {loading ? (
                 <div className="flex justify-center">
@@ -59,7 +74,7 @@ const ShippersPage: React.FC = () => {
                 </div>
             ) : (
                 <>
-                    <ShipperTable shippers={shippers} onViewShipments={handleViewShipments} pageCount={totalPages} />
+                    <ShipperTable shippers={shippers} onViewShipper={handleViewShipments} pageCount={totalPages} />
                     <div className="flex justify-between items-center mt-4">
                         <button
                             disabled={page === 1}

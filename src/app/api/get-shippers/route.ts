@@ -3,7 +3,7 @@ import { authOptions } from '../auth/[...nextauth]/options';
 import dbConnect from '@/lib/dbConnect';
 import ShipperModel from '@/model/Shipper';
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
     await dbConnect();
     const session = await getServerSession(authOptions);
     const _user = session?.user;
@@ -46,6 +46,36 @@ export async function GET(request: Request) {
 
         return new Response(
             JSON.stringify({ success: true, shippers, totalPages }),
+            { status: 200 }
+        );
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return new Response(
+            JSON.stringify({ message: 'Internal server error', success: false }),
+            { status: 500 }
+        );
+    }
+}
+export async function GET(request: Request) {
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
+
+    if (!session || !_user) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Not authenticated' }),
+            { status: 401 }
+        );
+    }
+    try {
+        const shippers = await ShipperModel.find().lean();
+        const formattedShippers = shippers.map(shipper => ({
+            _id: shipper._id,
+            companyName: shipper.companyName,
+        }));
+
+        return new Response(
+            JSON.stringify({ success: true, shippers: formattedShippers }),
             { status: 200 }
         );
     } catch (error) {
