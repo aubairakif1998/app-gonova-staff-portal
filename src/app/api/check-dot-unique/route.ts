@@ -4,7 +4,7 @@ import { z } from 'zod';
 const dotValidation = z
     .string()
     .regex(/^\d{4,7}$/, 'DOT number must be between 4 and 7 digits');
-export const usdotNumberValidation = z
+const usdotNumberValidation = z
     .string()
     .min(1, 'USDOT number must be at least 1 digit')
     .max(8, 'USDOT number must be no more than 8 digits')
