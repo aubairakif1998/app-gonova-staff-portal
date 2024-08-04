@@ -155,7 +155,7 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
     const initialSorting: SortingState = [
         {
             id: "createdAt",
-            desc: true,
+            desc: false,
         },
     ];
 

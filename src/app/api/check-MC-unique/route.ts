@@ -1,7 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
 import CarrierModel from '@/model/Carrier';
 import { z } from 'zod';
-export const transportMCNumberValidation = z
+const transportMCNumberValidation = z
     .string()
     .min(3, 'MC number must be at least 3 characters')
     .regex(/^MC\d{1,7}$/, 'MC number must be in the format MC followed by 1 to 7 digits');
