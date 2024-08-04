@@ -1,7 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
 import CarrierModel from '@/model/Carrier';
 import { z } from 'zod';
-export const dotValidation = z
+const dotValidation = z
     .string()
     .regex(/^\d{4,7}$/, 'DOT number must be between 4 and 7 digits');
 export const usdotNumberValidation = z
