@@ -17,7 +17,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Shipper } from '@/types/Shipper';
+import { Shipper } from '@/Interfaces/Shipper';
 
 interface ShipperTableProps {
     shippers: Shipper[];

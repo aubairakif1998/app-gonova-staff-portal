@@ -17,7 +17,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Carrier } from '@/services/carrierService';
+import { Carrier } from '@/Interfaces/carrier';
 
 interface CarrierTableProps {
     carriers: Carrier[];

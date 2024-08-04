@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { toast, useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ApiResponse } from '@/types/ApiResponse'
+import { ApiResponse } from '@/Interfaces/ApiResponse'
 
 const AccessTypeSchema = z.object({
     email: z.string().email('Invalid email address'),

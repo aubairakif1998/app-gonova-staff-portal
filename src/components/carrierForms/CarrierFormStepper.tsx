@@ -13,7 +13,7 @@ import ContactsForm from '@/components/carrierForms/ContactsForm';
 import VehicleInfoForm from '@/components/carrierForms/VehicleInfoForm';
 import { toast } from '@/components/ui/use-toast';
 import axios, { AxiosError } from 'axios';
-import { ApiResponse } from '@/types/ApiResponse';
+import { ApiResponse } from '@/Interfaces/ApiResponse';
 
 const steps = [
     { id: 'Step 1', name: 'Carrier Info', fields: ['companyName', 'transportMCNumber', 'dot'] },
@@ -35,7 +35,7 @@ const CarrierFormStepper = () => {
     const methods = useForm<Inputs>({
         resolver: zodResolver(CarrierSchema),
     });
-
+    const [hasException, setHasException] = useState(false);
     const { handleSubmit, trigger, getValues, formState: { errors }, reset } = methods;
 
     const processForm: SubmitHandler<Inputs> = async data => {
@@ -72,20 +72,23 @@ const CarrierFormStepper = () => {
     type FieldName = keyof Inputs;
 
     const next = async () => {
+
         const fields = steps[currentStep].fields;
         const output = await trigger(fields as FieldName[], { shouldFocus: true });
 
         if (!output) return;
-
-        if (currentStep === steps.length - 2) {
-            setPreviousStep(currentStep);
-            setCurrentStep(step => step + 1);
-        } else if (currentStep < steps.length - 1) {
-            setPreviousStep(currentStep);
-            setCurrentStep(step => step + 1);
-        } else if (currentStep === steps.length - 1) {
-            await handleSubmit(processForm)();
+        if (!hasException) {
+            if (currentStep === steps.length - 2) {
+                setPreviousStep(currentStep);
+                setCurrentStep(step => step + 1);
+            } else if (currentStep < steps.length - 1) {
+                setPreviousStep(currentStep);
+                setCurrentStep(step => step + 1);
+            } else if (currentStep === steps.length - 1) {
+                await handleSubmit(processForm)();
+            }
         }
+
     };
 
     const prev = () => {
@@ -196,7 +199,7 @@ const CarrierFormStepper = () => {
                                     animate={{ x: 0, opacity: 1 }}
                                     transition={{ duration: 0.3, ease: 'easeInOut' }}
                                 >
-                                    <CarrierInfoForm errors={errors} />
+                                    <CarrierInfoForm errors={errors} setHasException={setHasException} />
                                 </motion.div>
                             )}
                             {currentStep === 1 && (

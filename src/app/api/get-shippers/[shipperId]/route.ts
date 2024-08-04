@@ -28,7 +28,6 @@ export async function GET(req: Request) {
             );
         }
 
-        // Fetch the shipper details
         const shipper = await ShipperModel.findById(shipperId);
 
         if (!shipper) {

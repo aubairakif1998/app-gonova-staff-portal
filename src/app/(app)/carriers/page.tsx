@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import { fetchCarriers, Carrier, FetchCarriersResponse } from '@/services/carrierService';
+import { fetchCarriers, FetchCarriersResponse } from '@/services/carrierService';
+import { Carrier } from "@/Interfaces/carrier"
 import { ClipLoader } from 'react-spinners';
 import { Progress } from '@radix-ui/react-progress';
 import { useRouter } from "next/navigation";

@@ -7,7 +7,7 @@ import { Progress } from '@radix-ui/react-progress';
 import { useRouter } from "next/navigation";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Shipper } from '@/types/Shipper';
+import { Shipper } from '@/Interfaces/Shipper';
 
 const ShippersPage: React.FC = () => {
     const [shippers, setShippers] = useState<Shipper[]>([]);

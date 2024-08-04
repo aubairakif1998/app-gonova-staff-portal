@@ -1,7 +1,6 @@
 // services/shipperService.ts
 
-import { Shipper } from "@/types/Shipper";
-
+import { Shipper } from "@/Interfaces/Shipper";
 
 export interface FetchShippersResponse {
     success: boolean;
@@ -15,8 +14,8 @@ export interface Shipment {
     serviceType: string;
     requestingLoadingDate: string;
     arrivalDate: string;
-    pickupLocationPostalCode: string;
-    deliveryLocationPostalCode: string;
+    pickupLocation: string;
+    deliveryLocation: string;
     shipmentContainAlcohol: boolean;
     hazardousMaterial: boolean;
     itemDescription: string;
@@ -26,7 +25,9 @@ export interface Shipment {
         width: number;
         height: number;
     };
+    status: string;
     weight: number;
+    loads: []
     quantity: number;
     contracts: [];
 }
@@ -82,10 +83,31 @@ export const fetchAllShippers = async () => {
                 shippers: data.shippers as Shipper[]
             };
         } else {
-            return { success: false, shippers: [], totalPages: 0 };
+            return { success: false, shippers: [] };
         }
     } catch (error) {
         console.error('Error fetching shippers:', error);
-        return { success: false, shippers: [], totalPages: 0 };
+        return { success: false, shippers: [] };
     }
 };
+
+
+export const fetchShipmentsByShipperId = async (shipperId: string) => {
+    try {
+        const response = await fetch(`/api/get-shippers/${shipperId}`);
+        const data = await response.json();
+        if (data.success) {
+            return {
+                success: true,
+                shipments: data.shipments as Shipment[]
+            };
+        } else {
+            return { success: false, shipments: [] };
+        }
+    } catch (error) {
+        console.error('Error fetching shippers:', error);
+        return { success: false, shipments: [] };
+    }
+};
+
+

@@ -1,26 +1,6 @@
-interface Contact {
-    email: string;
-    phone: string;
-    workingHours: string;
-}
-interface VehicleInformation {
-    truckNumber: string;
-    driverName: string;
-    driverContactNo: string;
-}
-export interface Carrier {
-    _id: string;
-    companyName: string;
-    transportMCNumber: string;
-    dot: string;
-    contacts: {
-        primary: Contact;
-        secondary: Contact;
-    };
-    address: string;
-    vehicleInformation: VehicleInformation;
-    assignedLoads: string[];
-}
+import { Carrier } from "@/Interfaces/carrier";
+
+
 
 export interface FetchCarriersResponse {
     success: boolean;
@@ -50,6 +30,29 @@ export const fetchCarriers = async (
             success: false,
             carriers: [],
             totalPages: 0
+        };
+    }
+};
+
+export const fetchCarriers_POST = async () => {
+    try {
+        const response = await fetch(`/api/get-carriers`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        });
+        const data = await response.json();
+        console.log(data);
+        return {
+            success: data.success,
+            carriers: data.carriers
+        };
+    } catch (error) {
+        console.error('Error fetching carriers:', error);
+        return {
+            success: false,
+            carriers: [],
         };
     }
 };

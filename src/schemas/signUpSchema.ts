@@ -4,7 +4,7 @@ export const companyNameValidation = z
   .string()
   .min(2, 'Company Name must be at least 2 characters')
   .max(20, 'Company Name  must be no more than 20 characters')
-  .regex(/^[a-zA-Z0-9_]+$/, 'Username must not contain special characters');
+  .regex(/^[a-zA-Z0-9_]+$/, 'Company Name must not contain special characters');
 
 export const signUpSchema = z.object({
   email: z.string().nonempty("Email is required").email({ message: 'Invalid email address' }),

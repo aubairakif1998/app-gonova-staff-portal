@@ -6,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { fetchShipperDetails, Shipment } from '@/services/shipperService';
 import { ClipLoader } from 'react-spinners';
 import ShipmentTable from '@/components/ShipmentTable';
-import { Shipper } from '@/types/Shipper';
+import { Shipper } from '@/Interfaces/Shipper';
 
 const ShipperByIdPage: React.FC = () => {
     const { shipperId } = useParams();

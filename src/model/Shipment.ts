@@ -30,7 +30,8 @@ export interface IShipment extends Document {
     };
     weight: number;
     quantity: number;
-    contract: Types.ObjectId;
+    contract: Types.ObjectId[];
+    loads: Types.ObjectId[];
     status: "Active" | "Non-Active";
 }
 
@@ -54,7 +55,8 @@ const ShipmentSchema: Schema<IShipment> = new Schema({
     },
     weight: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    contract: { type: Schema.Types.ObjectId, ref: 'Contract' },
+    contract: [{ type: Schema.Types.ObjectId, ref: 'Contract' }],
+    loads: [{ type: Schema.Types.ObjectId, ref: 'Load' }],
     status: { type: String, enum: ["Active", "Non-Active"], required: true },
 }, {
     timestamps: true,

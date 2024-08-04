@@ -25,14 +25,14 @@ export interface ICarrier extends Document {
     };
     address: string;
     vehicleInformation: VehicleInformation;
-    assignedLoads: Types.ObjectId[]; // References to LoadTransactions
+    assignedLoads: Types.ObjectId[];
     createdBy: string;
 }
 
 const CarrierSchema: Schema<ICarrier> = new Schema({
-    companyName: { type: String, required: true },
-    transportMCNumber: { type: String, required: true },
-    dot: { type: String, required: true },
+    companyName: { type: String, required: true, unique: true },
+    transportMCNumber: { type: String, required: true, unique: true },
+    dot: { type: String, required: true, unique: true },
     contacts: {
         primary: {
             email: { type: String, required: true },
@@ -51,7 +51,6 @@ const CarrierSchema: Schema<ICarrier> = new Schema({
         driverName: { type: String, required: true },
         driverContactNo: { type: String, required: true },
     },
-
     assignedLoads: [{ type: Schema.Types.ObjectId, ref: 'Load' }], // References to LoadTransactions
     createdBy: {
         type: String,

@@ -85,14 +85,37 @@ const ShipmentTable: React.FC<ShipmentTableProps> = ({ shipments }) => {
             header: 'Quantity',
         },
         {
-            id: 'actions',
-            header: 'Actions',
-            cell: ({ row }) => (
-                <Button size='sm' onClick={() => createLoad(row.original.shipmentID)}>
-                    Create Load
-                </Button>
-            ),
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                const status = row.getValue("status");
+                let statusClass = "";
+
+                switch (status) {
+                    case "Non-Active":
+                        statusClass = "bg-gray-200 text-gray-700";
+                        break;
+                    case "Active":
+                        statusClass = "bg-blue-200 text-blue-700";
+                        break;
+
+                    default:
+                        statusClass = "bg-gray-200 text-gray-700";
+                        break;
+                }
+
+                return <div className={`px-2 py-1 rounded ${statusClass}`}><div>{row.getValue("status")}</div></div>;
+            },
         },
+        // {
+        //     id: 'actions',
+        //     header: 'Actions',
+        //     cell: ({ row }) => (
+        //         <Button size='sm' onClick={() => createLoad(row.original.shipmentID)}>
+        //             Create Load
+        //         </Button>
+        //     ),
+        // },
     ];
 
     const table = useReactTable({

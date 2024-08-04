@@ -1,33 +1,25 @@
-import mongoose, { Document, Schema, Types } from 'mongoose';
+import mongoose, { Document, Model, Schema, Types } from 'mongoose';
 
-export enum LoadStatus {
-    Upcoming = 'Upcoming',
-    InTransit = 'InTransit',
-    Completed = 'Completed',
-    Cancelled = 'Cancelled',
-}
-
-export interface Load extends Document {
+export interface ILoad extends Document {
     pickupDate: Date;
     dropOffDate: Date;
     pickupLocation: string;
-    dropOffLocation: string;
+    deliveryLocation: string;
     shipmentRequirement: string;
-    agentStaffMemberId: string;
-    agentStaffMemberName: string;
     supportedDocuments: string[];
     latestLocationOfLoad: {
         type: 'Point';
         coordinates: [number, number];
     };
-    status: LoadStatus;
+    status: string;
     shipmentRefId: string;
-    assignedCarrierName: string;
+    assignedCarrierMC: string;
+    agentStaffMemberId: string;
     createdBy: string;
-    assignedCarrierId: Types.ObjectId;
+
 }
 
-const LoadSchema: Schema<Load> = new Schema(
+const LoadSchema: Schema<ILoad> = new Schema(
     {
         pickupDate: { type: Date, required: true },
         dropOffDate: { type: Date, required: true },
@@ -35,42 +27,29 @@ const LoadSchema: Schema<Load> = new Schema(
             type: String,
             required: true,
         },
-        dropOffLocation: {
+        deliveryLocation: {
             type: String,
             required: true,
         },
         shipmentRequirement: {
             type: String,
-            required: true,
-        },
-
-        agentStaffMemberName: {
-            type: String,
-            required: true,
         },
         supportedDocuments: {
             type: [String],
-            required: true,
+            required: true
         },
         latestLocationOfLoad: {
             type: {
                 type: String, // 'Point'
                 enum: ['Point'],
-                required: true,
             },
             coordinates: {
                 type: [Number],
-                required: true,
             },
         },
         status: {
             type: String,
-            enum: Object.values(LoadStatus),
-            required: true,
-        },
-        agentStaffMemberId: {
-            type: String,
-            ref: 'StaffUser',
+            enum: ["Upcoming", "InTransit", "Completed", "Cancelled"],
             required: true,
         },
         shipmentRefId: {
@@ -78,13 +57,14 @@ const LoadSchema: Schema<Load> = new Schema(
             ref: 'Shipment',
             required: true,
         },
-        assignedCarrierName: {
+        assignedCarrierMC: {
             type: String,
+            ref: 'Carrier',
             required: true,
         },
-        assignedCarrierId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Carrier',
+        agentStaffMemberId: {
+            type: String,
+            ref: 'StaffUser',
             required: true,
         },
         createdBy: {
@@ -95,5 +75,5 @@ const LoadSchema: Schema<Load> = new Schema(
     timestamps: true,
 });
 
-const LoadModel = mongoose.model<Load>('Load', LoadSchema);
+const LoadModel: Model<ILoad> = mongoose.models.Load || mongoose.model<ILoad>('Load', LoadSchema);
 export default LoadModel;

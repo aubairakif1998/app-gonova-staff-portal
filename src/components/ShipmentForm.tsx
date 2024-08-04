@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm, SubmitHandler, useFieldArray } from 'react-hook-form'
 import { redirect, useRouter } from 'next/navigation';
 import axios, { AxiosError } from 'axios';
-import { ApiResponse } from '@/types/ApiResponse';
+import { ApiResponse } from '@/Interfaces/ApiResponse';
 import { toast } from './ui/use-toast';
 type Inputs = z.infer<typeof ShipmentFormDataSchema>
 

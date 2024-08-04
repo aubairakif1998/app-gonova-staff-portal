@@ -60,3 +60,31 @@ export async function GET(request: Request) {
         );
     }
 }
+
+
+
+
+export async function POST(request: Request) {
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
+    if (!session || !_user) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Not authenticated' }),
+            { status: 401 }
+        );
+    }
+    try {
+        const carriers = await CarrierModel.find();
+        return new Response(
+            JSON.stringify({ success: true, carriers }),
+            { status: 200 }
+        );
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return new Response(
+            JSON.stringify({ message: 'Internal server error', success: false }),
+            { status: 500 }
+        );
+    }
+}

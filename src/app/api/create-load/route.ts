@@ -1,4 +1,4 @@
-import UserModel from '@/model/StaffUser';
+import StaffUser from '@/model/StaffUser';
 import LoadModel from '@/model/Load';
 import { ShipmentModel } from '@/model/Shipment';
 import ShipperModel from '@/model/Shipper';
@@ -31,10 +31,18 @@ export async function POST(request: Request) {
 
     try {
         const requestData = await request.json();
-        const newLoad = new LoadModel(requestData);
+        console.log('requestData', requestData.loadData);
+        const newLoad = new LoadModel(requestData.loadData);
         const savedLoad = await newLoad.save();
-        await UserModel.findByIdAndUpdate(_user._id, { $push: { shipments: savedLoad._id } });
-
+        await ShipmentModel.findOneAndUpdate(
+            { shipmentID: requestData.loadData.shipmentRefId },
+            { $push: { loads: savedLoad._id } }
+        );
+        //    .findOne({
+        //     $or: [
+        //       { shipmentID: requestData.loadData.shipmentRefId }
+        //     ],
+        //   });
         return Response.json(
             { message: 'Load created', success: true, data: savedLoad },
             { status: 200 }
