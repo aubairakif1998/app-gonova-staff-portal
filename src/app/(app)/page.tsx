@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ClipLoader } from 'react-spinners';
 import { Progress } from '@radix-ui/react-progress';
+import Image from "next/image";
 import { User } from 'next-auth';
 function Page() {
   const { data: session, status } = useSession();
@@ -27,9 +28,16 @@ function Page() {
   // Show loading state while checking session
   if (status === 'loading' || !session) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <ClipLoader color="#000" loading={true} size={50} />
-        <Progress value={50} /> {/* Example value */}
+      <div className="flex flex-col justify-center items-center min-h-screen">
+        <Image
+          src="/assets/logo.png"
+          alt="Nova Staff Portal"
+          width={250}
+          height={250}
+          className="animate-bounce"
+        />
+        {/* 
+        <ClipLoader color="#000" loading={true} size={50} /> */}
       </div>
     );
   }

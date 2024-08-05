@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
+import { useRouter } from 'next/navigation';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { selectedShipmentState, selectedShipperState } from '@/recoil/atom';
 import { Shipment } from '@/services/shipperService';
@@ -9,6 +10,7 @@ interface ShipmentDropdownProps {
 }
 
 const ShipmentDropdown: React.FC<ShipmentDropdownProps> = ({ shipments }) => {
+    const router = useRouter();
     const [showDropdown, setShowDropdown] = useState<boolean>(false);
     const [inputValue, setInputValue] = useState<string>('');
     const [filteredShipments, setFilteredShipments] = useState<Shipment[]>(shipments);
@@ -29,6 +31,11 @@ const ShipmentDropdown: React.FC<ShipmentDropdownProps> = ({ shipments }) => {
         setSelectedShipment(shipment);
         setInputValue(shipment.shipmentID);
         setShowDropdown(false);
+    };
+
+    const handleStandAloneLoad = () => {
+        setShowDropdown(false);
+        // router.push('/loads/create-standalone-load');
     };
 
     const handleDropdownToggle = () => {
@@ -73,17 +80,30 @@ const ShipmentDropdown: React.FC<ShipmentDropdownProps> = ({ shipments }) => {
                 <ul className="absolute w-full mt-1 bg-white border border-gray-300 rounded shadow-lg max-h-60 overflow-y-auto">
                     {filteredShipments.length > 0 ? (
                         filteredShipments.map((shipment) => (
-                            <li
-                                key={shipment._id}
-                                onMouseDown={() => handleShipmentClick(shipment)}
-                                className="px-4 py-2 cursor-pointer hover:bg-gray-100"
-                            >
-                                {shipment.shipmentID}
-                            </li>
+
+
+                            <>
+                                <li
+                                    key={shipment._id}
+                                    onMouseDown={() => handleShipmentClick(shipment)}
+                                    className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                >
+                                    {shipment.shipmentID}
+                                </li>
+
+                            </>
+
                         ))
                     ) : (
                         <li className="px-4 py-2">No shipments available</li>
                     )}
+                    <li
+                        key={'stanAloneShipment'}
+                        onMouseDown={handleStandAloneLoad}
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100 font-bold text-black"
+                    >
+                        Create standalone load
+                    </li>
                 </ul>
             )}
         </div>

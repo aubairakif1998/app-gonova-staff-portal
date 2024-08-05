@@ -34,13 +34,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Load } from '@/Interfaces/Load';
 
-interface LoadTableProps {
+interface StandAloneLoadTableProps {
     loads: Load[];
     onViewLoads: (LoadId: string) => void;
     pageCount: number;
 }
 
-const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) => {
+const StandAloneLoadTable: React.FC<StandAloneLoadTableProps> = ({ loads, onViewLoads, pageCount }) => {
     const columns: ColumnDef<Load>[] = [
         {
             accessorKey: "_id",
@@ -101,11 +101,6 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
                     case "Upcoming":
                         statusClass = "bg-gray-200 text-gray-700";
                         break;
-
-                    case "Carrier not assigned":
-                        statusClass = "bg-gray-300 text-gray-700";
-                        break;
-
                     case "InTransit":
                         statusClass = "bg-blue-200 text-blue-700";
                         break;
@@ -181,52 +176,9 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
 
     return (
         <div className="overflow-hidden">
-            <div className="rounded-md border bg-white shadow-lg">
-                <div className="max-h-[calc(10*3.75rem)] overflow-y-auto">
-                    <Table className="border-collapse min-w-full">
-                        <TableHeader className="border-b-2">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            className="font-semibold text-gray-700 text-center border-r-2 last:border-r-0"
-                                        >
-                                            {header.isPlaceholder ? null : (
-                                                <>
-                                                    {flexRender(header.column.columnDef.header, header.getContext())}
-
-                                                </>
-                                            )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} className="hover:bg-gray-50 border-b-2">
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="py-2 px-4 text-center border-r-2 last:border-r-0">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="py-2 px-4 text-center border-r-2 last:border-r-0">
-                                        No results.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </div>
-            </div>
+            <>hell world</>
         </div>
     );
 };
 
-export default LoadTable;
+export default StandAloneLoadTable;

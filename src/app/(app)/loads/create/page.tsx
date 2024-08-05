@@ -5,9 +5,9 @@ import { useRecoilValue, useRecoilValueLoadable, useResetRecoilState } from 'rec
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import ShipperDropDown from '@/components/ShipperDropDown';
+import { ShipperDropDown } from '@/components/ShipperDropDown';
 import ShipmentDropdown from '@/components/ShipmentDropdown';
-import CarrierDropdown from '@/components/CarrierDropdown';
+import { CarrierDropdown } from '@/components/CarrierDropdown';
 import { selectedShipperState, shipperListState, shipmentListState, selectedShipmentState, selectedCarrierState, carrierListState } from '@/recoil/atom';
 import { z } from 'zod';
 import { useSession } from 'next-auth/react';
@@ -82,9 +82,9 @@ const Page: React.FC = () => {
                 shipmentRequirement: data.shipmentRequirement,
                 supportedDocuments: [],
                 latestLocationOfLoad: null,
-                status: 'Upcoming',
+                status: selectedCarrier?.transportMCNumber == null ? "Carrier not assigned" : 'Upcoming',
                 shipmentRefId: selectedShipment?.shipmentID,
-                assignedCarrierMC: selectedCarrier?.transportMCNumber,
+                assignedCarrierMC: selectedCarrier?.transportMCNumber ?? "",
                 agentStaffMemberId: user.email,
                 createdBy: user.email,
             }
@@ -107,8 +107,7 @@ const Page: React.FC = () => {
 
     return (
         <>
-            <h1 className="text-3xl font-bold mb-8 text-center">Create Load</h1>
-            <div className="flex flex-col gap-8 w-full max-w-4xl mx-auto mb-8">
+            <div className="flex flex-col gap-8 w-full max-w-4xl mx-auto mb-8 mt-10">
                 <div className="w-full flex flex-col md:flex-row gap-4">
                     <div className="w-full md:w-1/3">
                         {shippersLoadable.state === 'loading' && (
@@ -119,7 +118,6 @@ const Page: React.FC = () => {
                         {shippersLoadable.state === 'hasError' && <p className="text-red-500">Error loading shippers.</p>}
                         {shippersLoadable.state === 'hasValue' && (
                             <>
-                                <label className="block text-sm font-medium mb-2">Select Shipper</label>
                                 <ShipperDropDown shippers={shippersLoadable.contents} />
                             </>
                         )}
@@ -149,7 +147,6 @@ const Page: React.FC = () => {
                         {carrierLoadable.state === 'hasError' && <p className="text-red-500">Error loading carriers.</p>}
                         {carrierLoadable.state === 'hasValue' && (
                             <>
-                                <label className="block text-sm font-medium mb-2">Select Carrier</label>
                                 <CarrierDropdown carriers={carrierLoadable.contents} />
                             </>
                         )}

@@ -14,11 +14,11 @@ const generateId = (): string => {
 export interface IShipment extends Document {
     shipmentID: string;
     shipperId: Types.ObjectId;
-    serviceType: string;
     requestingLoadingDate: Date;
     arrivalDate: Date;
     pickupLocation: string;
     deliveryLocation: string;
+    serviceType: string;
     shipmentContainAlcohol: boolean;
     hazardousMaterial: boolean;
     itemDescription: string;

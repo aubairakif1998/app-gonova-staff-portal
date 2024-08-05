@@ -13,7 +13,7 @@ export interface ILoad extends Document {
     };
     status: string;
     shipmentRefId: string;
-    assignedCarrierMC: string;
+    assignedCarrierMC?: string;
     agentStaffMemberId: string;
     createdBy: string;
 
@@ -49,7 +49,7 @@ const LoadSchema: Schema<ILoad> = new Schema(
         },
         status: {
             type: String,
-            enum: ["Upcoming", "InTransit", "Completed", "Cancelled"],
+            enum: ["Carrier not assigned", "Upcoming", "InTransit", "Completed", "Cancelled"],
             required: true,
         },
         shipmentRefId: {
@@ -60,7 +60,6 @@ const LoadSchema: Schema<ILoad> = new Schema(
         assignedCarrierMC: {
             type: String,
             ref: 'Carrier',
-            required: true,
         },
         agentStaffMemberId: {
             type: String,

@@ -43,7 +43,7 @@ import DashboardBreadcrumb from './DashboardBreadcrumb';
 import { ClipLoader } from 'react-spinners';
 import { Progress } from '@radix-ui/react-progress';
 import { RecoilRoot } from 'recoil';
-
+import Image from "next/image";
 export default function DashboardLayout({
   children
 }: {
@@ -64,8 +64,14 @@ export default function DashboardLayout({
   if (status === 'loading' || !session) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <ClipLoader color="#000" loading={true} size={50} />
-        <Progress value={50} /> {/* Example value */}
+        {/* <ClipLoader color="#000" loading={true} size={50} />  */}
+        <Image
+          src="/assets/logo.png"
+          alt="Nova Staff Portal"
+          width={250}
+          height={250}
+          className="animate-bounce"
+        />
       </div>
     );
   }
@@ -74,22 +80,32 @@ export default function DashboardLayout({
       <Providers>
         <main className="flex min-h-screen w-full flex-col bg-muted/40">
           <DesktopNav />
-          <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
-            <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+          <div className="flex flex-col sm:sm:pl-14">
+            <header className="sticky top-0 z-10 flex h-24 items-center gap-4 border-b bg-transparent px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
               <MobileNav />
-              <DashboardBreadcrumb />
-              {/* <SearchInput /> */}
-
+              <div className="mt-2 flex-grow flex justify-center">
+                <Image
+                  src="/assets/branding.png"
+                  alt="Nova Staff Portal"
+                  width={350}
+                  height={50}
+                />
+              </div>
               <div className="relative ml-auto flex-1 md:grow-0">
                 <UserWidget />
               </div>
+            </header>
+            <header className="py-2 sticky top-0 z-30 flex h-5 items-center gap-4 border-b bg-transparent px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+              <DashboardBreadcrumb />
             </header>
             <main className="grid flex-1 items-start gap-2 p-4 sm:px-6 sm:py-0 md:gap-4 bg-muted/40">
               {children}
             </main>
           </div>
         </main>
-      </Providers> </RecoilRoot>
+      </Providers>
+    </RecoilRoot>
+
   );
 }
 
@@ -101,54 +117,37 @@ function DesktopNav() {
   return (
     <aside className="fixed inset-y-0 left-0 z-10 hidden w-20 flex-col border-r bg-background sm:flex">
       <nav className="flex flex-col items-center gap-8 px-2 sm:py-5">
-        <Link
-          href="/"
-          className="group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base"
-        >
-          <VercelLogo className="h-3 w-3 transition-all group-hover:scale-110" />
-          <span className="sr-only">Nova Staff Portal</span>
-        </Link>
+        <div className="flex justify-center items-center h-full">
+          <Link
+            href="/"
+            className="block"
+          >
+            <Image
+              src="/assets/logo.png"
+              alt="Nova Staff Portal"
+              width={150}
+              height={150}
+              className=" "
+            />
+          </Link>
+        </div>
 
         <NavItem href="/loads" label="Loads">
-          {/* <Monitor className="h-5 w-5" /> */}
-          <div className='text-sm font-bold'>Loads</div>
+          <div className="text-sm font-bold">Loads</div>
         </NavItem>
 
         <NavItem href="/shippers" label="Shippers">
-          {/* <Monitor className="h-5 w-5" /> */}
-          <div className='text-sm font-bold'>Shippers</div>
+          <div className="text-sm font-bold">Shippers</div>
         </NavItem>
 
         <NavItem href="/carriers" label="Carriers">
-          {/* <Monitor className="h-5 w-5" /> */}
-          <div className='text-sm font-bold'>Carriers</div>
+          <div className="text-sm font-bold">Carriers</div>
         </NavItem>
-
-
-        {/* <NavItem href="/contracts" label="Contracts">
-          <File className="h-5 w-5" />
-        </NavItem>
-
-        <NavItem href="/shipments" label="Shipments">
-          <PackageIcon className="h-5 w-5" />
-        </NavItem>
-
-        <NavItem href="/invoices" label="Invoices">
-          <FileTextIcon className="h-5 w-5" />
-        </NavItem>
-
-        <NavItem href="/profile" label="Profile">
-          <User2 className="h-5 w-5" />
-        </NavItem> */}
-
       </nav>
       <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link
-              href="/support"
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8"
-            >
+            <Link href="/support" className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground md:h-8 md:w-8">
               <LifeBuoyIcon className="h-5 w-5" />
               <span className="sr-only">Support</span>
             </Link>

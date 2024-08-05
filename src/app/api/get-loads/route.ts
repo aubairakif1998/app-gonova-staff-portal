@@ -5,14 +5,14 @@ import LoadModel from '@/model/Load';
 
 export async function GET(request: Request) {
     await dbConnect();
-    // const session = await getServerSession(authOptions);
-    // const _user = session?.user;
-    // if (!session || !_user) {
-    //     return new Response(
-    //         JSON.stringify({ success: false, message: 'Not authenticated' }),
-    //         { status: 401 }
-    //     );
-    // }
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
+    if (!session || !_user) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Not authenticated' }),
+            { status: 401 }
+        );
+    }
     try {
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get('page') || '1', 10);

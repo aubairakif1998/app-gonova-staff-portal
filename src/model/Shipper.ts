@@ -9,6 +9,7 @@ export interface IShipper extends Document {
     email: string;
     isVerified: boolean;
     phoneNumber: string;
+    standAloneLoads: Types.ObjectId[];
     shipments: Types.ObjectId[];
 }
 
@@ -53,7 +54,8 @@ const ShipperSchema: Schema<IShipper> = new Schema({
         type: Boolean,
         default: false,
     },
-    shipments: [{ type: Schema.Types.ObjectId, ref: 'Shipment' }]
+    shipments: [{ type: Schema.Types.ObjectId, ref: 'Shipment' }],
+    standAloneLoads: [{ type: Schema.Types.ObjectId, ref: 'StandAloneLoad' }],
 }, {
     timestamps: true,
 });
