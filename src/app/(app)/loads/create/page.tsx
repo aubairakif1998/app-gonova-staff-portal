@@ -96,7 +96,7 @@ const Page: React.FC = () => {
             });
             router.replace('/loads')
         } catch (error) {
-            console.error('Error uploading files:', error);
+            console.error('Error creating load', error);
             toast({
                 title: "Error",
                 description: "There was an error creating the load. Please try again.",

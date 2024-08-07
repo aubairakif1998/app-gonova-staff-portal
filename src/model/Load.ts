@@ -54,16 +54,13 @@ const LoadSchema: Schema<ILoad> = new Schema(
         },
         shipmentRefId: {
             type: String,
-            ref: 'Shipment',
             required: true,
         },
         assignedCarrierMC: {
             type: String,
-            ref: 'Carrier',
         },
         agentStaffMemberId: {
             type: String,
-            ref: 'StaffUser',
             required: true,
         },
         createdBy: {

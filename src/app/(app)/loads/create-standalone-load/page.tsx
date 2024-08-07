@@ -1,7 +1,7 @@
 'use client'
 import { ClipLoader } from 'react-spinners';
 import { Progress } from '@radix-ui/react-progress';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { z } from 'zod'
 import { StandAloneLoadFormDataSchema } from '@/schemas/StandAloneLoadForm'
@@ -13,15 +13,26 @@ import { ApiResponse } from '@/Interfaces/ApiResponse';
 type Inputs = z.infer<typeof StandAloneLoadFormDataSchema>
 import { useSession } from 'next-auth/react';
 import { User } from 'next-auth';
+import { useRecoilValue, useRecoilValueLoadable, useResetRecoilState } from 'recoil';
 import { useToast } from '@/components/ui/use-toast';
+import { selectedShipperState, shipperListState, shipmentListState, selectedShipmentState, selectedCarrierState, carrierListState } from '@/recoil/atom';
+import { ShipperDropDown } from '@/components/ShipperDropDown';
+import { CarrierDropdown } from '@/components/CarrierDropdown';
+
 const steps = [
     {
         id: 'Step 1',
+        name: 'Select Shipper',
+        fields: ['shipper']
+    },
+
+    {
+        id: 'Step 2',
         name: 'Service Type',
         fields: ['serviceType']
     },
     {
-        id: 'Step 2', name: 'Pickup & DropOff Info',
+        id: 'Step 3', name: 'Pickup & DropOff Info',
         fields: [
             'pickupDate',
             'dropOffDate',
@@ -33,11 +44,13 @@ const steps = [
             'deliveryLocationAddress',
         ]
     },
-    { id: 'Step 3', name: 'Tell us more about your freight', fields: ['loadContainAlcohol', 'hazardousMaterial'] },
-    { id: 'Step 4', name: 'Items', fields: ['itemDescription', 'packaging', 'dimensions', 'weight', 'quantity'] },
-    { id: 'Step 5', name: 'Supported Docs', fields: ['supportedDocuments', 'shipmentRequirement'] },
-    { id: 'Step 6', name: 'Complete' }
+    { id: 'Step 4', name: 'Tell us more about your freight', fields: ['loadContainAlcohol', 'hazardousMaterial'] },
+    { id: 'Step 5', name: 'Items', fields: ['itemDescription', 'packaging', 'dimensions', 'weight', 'quantity'] },
+    { id: 'Step 6', name: 'Supported Docs', fields: ['supportedDocuments', 'shipmentRequirement'] },
+    { id: 'Step 7', name: 'Select Carrier', fields: ['carrier'] },
+    { id: 'Step 8', name: 'Complete' }
 ]
+
 export default function StandAloneLoadFormPage() {
     const [previousStep, setPreviousStep] = useState(0)
     const [currentStep, setCurrentStep] = useState(0)
@@ -48,6 +61,12 @@ export default function StandAloneLoadFormPage() {
     const user: User = session?.user;
     const { toast } = useToast();
     const [supportedDocuments, setSupportedDocuments] = useState<File[]>([]);
+    const selectedShipper = useRecoilValue(selectedShipperState);
+    const selectedCarrier = useRecoilValue(selectedCarrierState);
+    const shippersLoadable = useRecoilValueLoadable(shipperListState);
+    const carrierLoadable = useRecoilValueLoadable(carrierListState);
+    const resetSelectedShipper = useResetRecoilState(selectedShipperState);
+    const resetSelectedCarrier = useResetRecoilState(selectedCarrierState);
 
     const {
         register,
@@ -72,18 +91,37 @@ export default function StandAloneLoadFormPage() {
     const processForm: SubmitHandler<Inputs> = async data => {
         setLoading(true);
         try {
-            const response = await axios.post<ApiResponse>('/api/create-shipment', { shipmentData: data });
-            console.log(response.data.message);
+            const standAloneloadData = {
+                pickupDate: data.pickupDate,
+                dropOffDate: data.dropOffDate,
+                pickupLocation: data.pickupLocationAddress + data.pickupLocationCity + data.pickupLocationZip,
+                deliveryLocation: data.deliveryLocationAddress + data.deliveryLocationCity + data.deliveryLocationZip,
+                serviceType: data.serviceType,
+                loadContainAlcohol: data.loadContainAlcohol,
+                hazardousMaterial: data.hazardousMaterial,
+                itemDescription: data.itemDescription,
+                packaging: data.packaging,
+                dimensions: data.dimensions,
+                weight: data.weight,
+                quantity: data.quantity,
+                shipmentRequirement: data.shipmentRequirement,
+                supportedDocuments: [],
+                latestLocationOfLoad: null,
+                status: selectedCarrier?.transportMCNumber == null ? "Carrier not assigned" : 'Upcoming',
+                shipperCompanyName: selectedShipper?.companyName ?? "",
+                assignedCarrierMC: selectedCarrier?.transportMCNumber ?? "",
+                agentStaffMemberId: user.email,
+                createdBy: user.email,
+            }
+            const response = await axios.post<ApiResponse>('/api/create-standalone-load', { standAloneloadData: standAloneloadData });
             toast({
                 title: response.data.message,
+                description: "Your load has been successfully created.",
                 variant: 'default',
             });
-            router.push('/shipments');
-            reset();
-            setCurrentStep(-1);
-            setPreviousStep(0);
+            router.replace('/loads')
         } catch (error) {
-            console.error('Create quote error:', error);
+            console.error('Create standaloneload error:', error);
             const axiosError = error as AxiosError<ApiResponse>;
             toast({
                 title: 'Error',
@@ -99,9 +137,7 @@ export default function StandAloneLoadFormPage() {
             setLoading(false);
         }
     };
-
     type FieldName = keyof Inputs
-
     const next = async () => {
         const fields = steps[currentStep].fields
         const output = await trigger(fields as FieldName[], { shouldFocus: true })
@@ -117,13 +153,24 @@ export default function StandAloneLoadFormPage() {
             setCurrentStep(step => step + 1)
         }
     }
-
     const prev = () => {
         if (currentStep > 0) {
             setPreviousStep(currentStep)
             setCurrentStep(step => step - 1)
         }
     }
+    useEffect(() => {
+        return () => {
+            resetSelectedShipper();
+            resetSelectedCarrier();
+        };
+    }, [resetSelectedShipper, resetSelectedCarrier]);
+    useEffect(() => {
+        setValue('shipper', selectedShipper?.companyName ?? "");
+    }, [selectedShipper, setValue]);
+    useEffect(() => {
+        setValue('carrier', selectedCarrier?.transportMCNumber ?? "");
+    }, [selectedCarrier, setValue]);
     return (
         <>
             <section className='absolute inset-0 flex flex-col justify-between p-24 mt-10'>
@@ -166,10 +213,36 @@ export default function StandAloneLoadFormPage() {
                         ))}
                     </ol>
                 </nav>
-
-                {/* Form */}
                 <form className='mt-12 py-12' onSubmit={handleSubmit(processForm)}>
                     {currentStep === 0 && (
+                        <motion.div
+                            initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="flex flex-col items-center justify-center h-full w-full mt-[-10%]" // Adjust mt-[-10%] to lift up
+                        >
+                            {/* Service Type */}
+                            <div className="w-full max-w-md p-4 bg-white shadow-md rounded-md border border-gray-200">
+                                {shippersLoadable.state === 'loading' && (
+                                    <div className="relative h-12 w-full rounded-md overflow-hidden bg-gray-200">
+                                        <div className="absolute top-0 left-[-100%] h-full w-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer"></div>
+                                    </div>
+                                )}
+                                {shippersLoadable.state === 'hasError' && <p className="text-red-500">Error loading shippers.</p>}
+                                {shippersLoadable.state === 'hasValue' && (
+                                    <>
+                                        <ShipperDropDown shippers={shippersLoadable.contents} />
+                                        <h1 className="text-xl font-semibold mt-4">{selectedShipper?.companyName}</h1>
+                                    </>
+                                )}
+                                {errors.shipper && <p className='text-red-500 text-sm mt-2'>{errors.shipper.message}</p>}
+                            </div>
+                        </motion.div>
+                    )}
+
+
+
+                    {currentStep === 1 && (
                         <motion.div
                             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -227,7 +300,7 @@ export default function StandAloneLoadFormPage() {
                         </motion.div>
                     )}
 
-                    {currentStep === 1 && (
+                    {currentStep === 2 && (
                         <motion.div
                             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -237,7 +310,7 @@ export default function StandAloneLoadFormPage() {
                                 <div className='grid grid-cols-2 gap-6'>
                                     <div>
                                         <label htmlFor='pickupDate' className='block text-sm font-medium leading-6 text-gray-900'>
-                                            Requesting Loading Date
+                                            PickUp Date
                                         </label>
                                         <div className='mt-2 relative'>
                                             <input
@@ -251,7 +324,7 @@ export default function StandAloneLoadFormPage() {
                                     </div>
                                     <div>
                                         <label htmlFor='dropOffDate' className='block text-sm font-medium leading-6 text-gray-900'>
-                                            Arrival Date
+                                            DroppOff Date
                                         </label>
                                         <div className='mt-2 relative'>
                                             <input
@@ -385,7 +458,7 @@ export default function StandAloneLoadFormPage() {
                         </motion.div>
                     )}
 
-                    {currentStep === 2 && (
+                    {currentStep === 3 && (
                         <div className=''>
                             <div className=''>
                                 <label htmlFor='loadContainAlcohol' className='block text-lg font-medium leading-6 text-gray-900 text-center'>
@@ -426,7 +499,7 @@ export default function StandAloneLoadFormPage() {
                     )}
 
 
-                    {currentStep === 3 && (
+                    {currentStep === 4 && (
                         <motion.div
                             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -535,7 +608,7 @@ export default function StandAloneLoadFormPage() {
                     )}
 
 
-                    {currentStep === 4 && (
+                    {currentStep === 5 && (
                         <motion.div
                             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -586,18 +659,54 @@ export default function StandAloneLoadFormPage() {
 
 
 
-                    {currentStep === 5 && (
+                    {currentStep === 6 && (
+                        <motion.div
+                            initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="flex flex-col items-center justify-center h-full w-full mt-[-10%]" // Adjust mt-[-10%] to lift up
+                        >
+
+                            {/* Service Type */}
+                            <div className="w-full max-w-md p-4 bg-white shadow-md rounded-md border border-gray-200">
+                                {carrierLoadable.state === 'loading' && (
+                                    <div className="relative h-12 w-full rounded-md overflow-hidden bg-gray-200">
+                                        <div className="absolute top-0 left-[-100%] h-full w-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-shimmer"></div>
+                                    </div>
+                                )}
+                                {carrierLoadable.state === 'hasError' && <p className="text-red-500">Error loading carrier.</p>}
+                                {carrierLoadable.state === 'hasValue' && (
+                                    <>
+                                        <CarrierDropdown carriers={carrierLoadable.contents} />
+                                        <h1 className="text-xl font-semibold mt-4">{selectedCarrier?.transportMCNumber}</h1>
+                                    </>
+                                )}
+                                {errors.carrier && <p className='text-red-500 text-sm mt-2'>{errors.carrier.message}</p>}
+                            </div>
+
+                        </motion.div>
+                    )}
+
+                    {currentStep === 7 && (
                         <motion.div
                             initial={{ x: delta >= 0 ? '50%' : '-50%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ duration: 0.3, ease: 'easeInOut' }}
                         >
-
-
                             <div className='bg-white p-10 rounded-xl shadow-lg'>
                                 <h2 className='mx-10 my-10 text-2xl font-bold text-black'>Preview Your Information</h2>
 
                                 <div className='flex justify-start align-items'>
+
+                                    <div className='mx-10 my-4'>
+                                        <h3 className='text-md font-bold text-center text-gray-700'>Shipper</h3>
+                                        <p className='text-center text-gray-700'>{watch('shipper')}</p>
+                                    </div>
+
+                                    <div className='mx-10 my-4'>
+                                        <h3 className='text-md font-bold text-center text-gray-700'>Carrier</h3>
+                                        <p className='text-center text-gray-700'>{watch('carrier')}</p>
+                                    </div>
                                     <div className='mx-10 my-4'>
                                         <h3 className='text-md font-bold text-center text-gray-700'>Service Type:</h3>
                                         <p className='text-center text-gray-700'>{watch('serviceType')}</p>
@@ -657,6 +766,7 @@ export default function StandAloneLoadFormPage() {
                             </div>
 
 
+
                         </motion.div>
                     )}
                     <div className='flex justify-between mt-8'>
@@ -683,9 +793,3 @@ export default function StandAloneLoadFormPage() {
         </>
     )
 }
-
-
-
-// 1234 Park ST - Pickup location
-// Portland, OR - Pickup location City
-// 97255 - Pickup location Zip code

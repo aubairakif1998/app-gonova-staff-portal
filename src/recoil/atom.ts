@@ -10,6 +10,10 @@ export const selectedShipperState = atom<Shipper | null>({
     default: null,
 });
 
+
+
+
+
 export const shipperListState = selector({
     key: 'shipperListState',
     get: async () => {
@@ -21,12 +25,10 @@ export const shipperListState = selector({
     },
 
 });
-
 export const selectedShipmentState = atom<Shipment | null>({
     key: 'selectedShipmentState',
     default: null,
 });
-
 export const shipmentListState = selector({
     key: 'shipmentListState',
     get: async ({ get }) => {
@@ -39,13 +41,10 @@ export const shipmentListState = selector({
         return [];
     },
 });
-
-
 export const selectedCarrierState = atom<Carrier | null>({
     key: 'selectedCarrierState',
     default: null,
 });
-
 export const carrierListState = selector({
     key: 'carrierListState',
     get: async () => {

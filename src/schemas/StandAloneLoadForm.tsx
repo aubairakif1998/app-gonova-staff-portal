@@ -1,7 +1,9 @@
+import { Shipper } from '@/Interfaces/Shipper';
 import { z } from 'zod';
 const MAX_UPLOAD_SIZE = 1024 * 1024 * 3; // 3MB
 
 const StandAloneLoadFormDataSchema = z.object({
+    shipper: z.string().nonempty("shipper company name is required"),
     serviceType: z.enum(["LTL", "Full Truckload", "Small Shipments"], {
         errorMap: () => ({ message: 'Service type is required' })
     }),
@@ -33,8 +35,8 @@ const StandAloneLoadFormDataSchema = z.object({
     }),
     weight: z.number().positive("Weight must be a positive number"),
     quantity: z.number().positive("Quantity must be a positive number"),
+    carrier: z.string().optional(),
     supportedDocuments: z.array(z.instanceof(File).refine((file) => file.size <= MAX_UPLOAD_SIZE, 'File size must be less than 3MB')).optional(),
-    status: z.enum(["Carrier not assigned", "Upcoming", "InTransit", "Completed", "Cancelled"]),
     shipmentRequirement: z.string().nonempty("Shipment requirement is required"),
 });
 

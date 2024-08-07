@@ -16,7 +16,6 @@ import {
 import { format } from 'date-fns';
 import {
     DropdownMenu,
-    DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
@@ -41,53 +40,59 @@ interface LoadTableProps {
 }
 
 const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) => {
+    const handleCellClick = (value: string) => {
+        navigator.clipboard.writeText(value)
+            .then(() => { })
+            .catch((err) => console.error('Failed to copy text: ', err));
+    };
+
     const columns: ColumnDef<Load>[] = [
         {
             accessorKey: "_id",
             header: "LoadId",
-            cell: ({ row }) => <div>{row.getValue("_id")}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("_id"))}>{row.getValue("_id")}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "shipmentRefId",
             header: "ShipmentId",
-            cell: ({ row }) => <div>{row.getValue("shipmentRefId")}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("shipmentRefId"))}>{row.getValue("shipmentRefId")}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "assignedCarrierMC",
             header: "Carrier MC",
-            cell: ({ row }) => <div>{row.getValue("assignedCarrierMC")}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("assignedCarrierMC"))}>{row.getValue("assignedCarrierMC")}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "pickupDate",
             header: "Pickup Date",
-            cell: ({ row }) => <div>{format(new Date(row.getValue("pickupDate")), 'MM/dd/yyyy')}</div>,
+            cell: ({ row }) => <div className="underline " onClick={() => handleCellClick(format(new Date(row.getValue("pickupDate")), 'MM/dd/yyyy'))}>{format(new Date(row.getValue("pickupDate")), 'MM/dd/yyyy')}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "dropOffDate",
             header: "Drop Off Date",
-            cell: ({ row }) => <div>{format(new Date(row.getValue("dropOffDate")), 'MM/dd/yyyy')}</div>,
+            cell: ({ row }) => <div className="underline " onClick={() => handleCellClick(format(new Date(row.getValue("dropOffDate")), 'MM/dd/yyyy'))}>{format(new Date(row.getValue("dropOffDate")), 'MM/dd/yyyy')}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "pickupLocation",
             header: "Pickup Location",
-            cell: ({ row }) => <div>{row.getValue("pickupLocation")}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("pickupLocation"))}>{row.getValue("pickupLocation")}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "deliveryLocation",
             header: "Delivery Location",
-            cell: ({ row }) => <div>{row.getValue("deliveryLocation")}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("deliveryLocation"))}>{row.getValue("deliveryLocation")}</div>,
             enableSorting: true,
         },
         {
             accessorKey: "createdAt",
             header: "Created At",
-            cell: ({ row }) => <div>{format(new Date(row.getValue("createdAt")), 'MM/dd/yyyy')}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(format(new Date(row.getValue("createdAt")), 'MM/dd/yyyy'))}>{format(new Date(row.getValue("createdAt")), 'MM/dd/yyyy')}</div>,
             enableSorting: true,
         },
         {
@@ -120,7 +125,7 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
                         break;
                 }
 
-                return <div className={`px-2 py-1 rounded ${statusClass}`}><div>{row.getValue("status")}</div></div>;
+                return <div className={`px-2 py-1 rounded ${statusClass}`} onClick={() => handleCellClick(row.getValue("status"))}>{row.getValue("status")}</div>;
             },
         },
         {
@@ -180,49 +185,50 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
     });
 
     return (
-        <div className="overflow-hidden">
-            <div className="rounded-md border bg-white shadow-lg">
-                <div className="max-h-[calc(10*3.75rem)] overflow-y-auto">
-                    <Table className="border-collapse min-w-full">
-                        <TableHeader className="border-b-2">
-                            {table.getHeaderGroups().map((headerGroup) => (
-                                <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => (
-                                        <TableHead
-                                            key={header.id}
-                                            className="font-semibold text-gray-700 text-center border-r-2 last:border-r-0"
-                                        >
-                                            {header.isPlaceholder ? null : (
-                                                <>
-                                                    {flexRender(header.column.columnDef.header, header.getContext())}
-
-                                                </>
-                                            )}
-                                        </TableHead>
-                                    ))}
-                                </TableRow>
-                            ))}
-                        </TableHeader>
-                        <TableBody>
-                            {table.getRowModel().rows.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} className="hover:bg-gray-50 border-b-2">
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="py-2 px-4 text-center border-r-2 last:border-r-0">
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
+        <div className="grid grid-cols-1 text-sm">
+            <div className="overflow-hidden">
+                <div className="rounded-md border bg-white shadow-lg">
+                    <div className="max-h-[calc(10*3.5rem)] overflow-y-auto">
+                        <Table className="border-collapse min-w-full">
+                            <TableHeader className="border-b-2">
+                                {table.getHeaderGroups().map((headerGroup) => (
+                                    <TableRow key={headerGroup.id}>
+                                        {headerGroup.headers.map((header) => (
+                                            <TableHead
+                                                key={header.id}
+                                                className="py-1 px-2 font-semibold text-red-700  text-xsm  text-center border-r-2 last:border-r-0"
+                                            >
+                                                {header.isPlaceholder ? null : (
+                                                    <>
+                                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    </>
+                                                )}
+                                            </TableHead>
                                         ))}
                                     </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="py-2 px-4 text-center border-r-2 last:border-r-0">
-                                        No results.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
+                                ))}
+                            </TableHeader>
+                            <TableBody>
+                                {table.getRowModel().rows.length ? (
+                                    table.getRowModel().rows.map((row) => (
+                                        <TableRow key={row.id} className="hover:bg-gray-50 border-b-2">
+                                            {row.getVisibleCells().map((cell) => (
+                                                <TableCell key={cell.id} className="px-1 text-center border-r-2 last:border-r-0">
+                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                </TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={columns.length} className="text-center border-r-2 last:border-r-0">
+                                            No results.
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </div>
             </div>
         </div>

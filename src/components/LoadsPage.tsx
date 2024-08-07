@@ -17,7 +17,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 
-const statusOptions = ['Upcoming', 'InTransit', 'Completed', 'Cancelled', 'All'];
+const statusOptions = ['Carrier not assigned', 'Upcoming', 'InTransit', 'Completed', 'Cancelled', 'All'];
 
 const LoadsPage: React.FC = () => {
     const [loads, setLoads] = useState<Load[]>([]);
@@ -70,35 +70,26 @@ const LoadsPage: React.FC = () => {
 
     return (
         <div className="container mx-auto p-4">
-            {/* <Accordion type="single" collapsible>
-                <AccordionItem value="item-1">
-                    <AccordionTrigger>Is it accessible?</AccordionTrigger>
-                    <AccordionContent>
-                        Yes. It adheres to the WAI-ARIA design pattern.
-                    </AccordionContent>
-                </AccordionItem>
-            </Accordion>
-            <h1 className="text-2xl font-bold mb-4">Loads</h1> */}
-            <div className="mb-4 flex space-x-2">
+            <div className="mb-4 flex flex-wrap md:flex-nowrap space-x-2 space-y-2 md:space-y-0">
                 <Input
                     type="text"
                     placeholder="Search by Carrier MC Number"
                     value={assignedCarrierMC}
-                    className="border border-gray-300 rounded p-2"
+                    className="border border-gray-300 rounded p-2 w-full md:w-auto"
                     onChange={(e) => setAssignedCarrierMC(e.target.value)}
                 />
                 <Input
-                    type="email"
+                    type="text"
                     placeholder="Search by Shipment Id"
                     value={shipmentRefId}
                     onChange={(e) => setShipmentRefId(e.target.value)}
-                    className="border border-gray-300 rounded p-2"
+                    className="border border-gray-300 rounded p-2 w-full md:w-auto"
                 />
-                <Button onClick={() => setPage(1)}>Search</Button>
+                <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 w-full md:w-auto" onClick={() => setPage(1)}>Search</Button>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button>Filter by Status</Button>
+                        <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 w-full md:w-auto">Filter by Status</Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="space-y-2 transition-all duration-300">
                         {statusOptions.map((statusOption) => (
@@ -114,13 +105,11 @@ const LoadsPage: React.FC = () => {
                         ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
-                <Button onClick={loadCarriers}>
+                <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 w-full md:w-auto" onClick={loadCarriers}>
                     <FiRefreshCcw className="inline-block mr-2" /> Refresh
                 </Button>
             </div>
-            <div className="mb-4 flex justify-end">
-                <Button onClick={handleCreateLoad}>Create Load</Button>
-            </div>
+
             {loading ? (
                 <div className="flex justify-center">
                     <ClipLoader color="#000" loading={true} size={50} />
@@ -129,21 +118,21 @@ const LoadsPage: React.FC = () => {
                 <>
                     <LoadTable loads={loads} onViewLoads={handleViewLoads} pageCount={totalPages} />
                     <div className="flex justify-between items-center mt-4">
-                        <button
+                        <Button
                             disabled={page === 1}
                             onClick={() => setPage(page - 1)}
                             className={`px-4 py-2 rounded ${page === 1 ? 'bg-gray-300' : 'bg-black text-white hover:bg-black'}`}
                         >
                             Previous
-                        </button>
-                        <span>Page {page} of {totalPages}</span>
-                        <button
+                        </Button>
+                        <span className='text-sm'>Page {page} of {totalPages}</span>
+                        <Button
                             disabled={page === totalPages}
                             onClick={() => setPage(page + 1)}
                             className={`px-4 py-2 rounded ${page === totalPages ? 'bg-gray-300' : 'bg-black text-white hover:bg-black'}`}
                         >
                             Next
-                        </button>
+                        </Button>
                     </div>
                 </>
             )}

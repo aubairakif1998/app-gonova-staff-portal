@@ -24,7 +24,7 @@ export interface IStandAloneLoad extends Document {
         coordinates: [number, number];
     };
     status: "Carrier not assigned" | "Upcoming" | "InTransit" | "Completed" | "Cancelled";
-    shipperRefId: Types.ObjectId;
+    shipperCompanyName: string;
     assignedCarrierMC?: string;
     agentStaffMemberId: string;
     createdBy: string;
@@ -53,11 +53,9 @@ const StandAloneLoadSchema: Schema<IStandAloneLoad> = new Schema({
         type: {
             type: String,
             enum: ['Point'],
-            required: true
         },
         coordinates: {
             type: [Number],
-            required: true
         },
     },
     status: {
@@ -65,9 +63,11 @@ const StandAloneLoadSchema: Schema<IStandAloneLoad> = new Schema({
         enum: ["Carrier not assigned", "Upcoming", "InTransit", "Completed", "Cancelled"],
         required: true,
     },
-    shipperRefId: { type: Schema.Types.ObjectId, ref: 'Shipper', required: true },
-    assignedCarrierMC: { type: String, ref: 'Carrier' },
-    agentStaffMemberId: { type: String, ref: 'StaffUser', required: true },
+    shipperCompanyName: { type: String, required: true },
+    assignedCarrierMC: {
+        type: String,
+    },
+    agentStaffMemberId: { type: String, required: true },
     createdBy: { type: String, required: true }
 }, {
     timestamps: true,
