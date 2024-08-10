@@ -17,7 +17,7 @@ import {
     AccordionTrigger,
 } from "@/components/ui/accordion"
 
-const statusOptions = ['Carrier not assigned', 'Upcoming', 'InTransit', 'Completed', 'Cancelled', 'All'];
+const statusOptions = ['All', 'Carrier not assigned', 'Upcoming', 'InTransit', 'Completed', 'Cancelled'];
 
 const LoadsPage: React.FC = () => {
     const [loads, setLoads] = useState<Load[]>([]);
@@ -44,7 +44,7 @@ const LoadsPage: React.FC = () => {
     }, [page, assignedCarrierMC, status, shipmentRefId, loadCarriers]);
 
     const handleViewLoads = (loadId: string) => {
-        router.push(`/loads/${loadId}`);
+        router.push(`/loads/${loadId}/load-detail`);
     };
 
     const handleCreateLoad = () => {

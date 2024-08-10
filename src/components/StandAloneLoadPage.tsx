@@ -19,7 +19,7 @@ import {
 import StandAloneLoadTable from './StandAloneLoadTable';
 import { StandAloneLoad } from '@/Interfaces/StandAloneLoad';
 
-const statusOptions = ['Upcoming', 'InTransit', 'Completed', 'Cancelled', 'All'];
+const statusOptions = ['All', 'Carrier not assigned', 'Upcoming', 'InTransit', 'Completed', 'Cancelled'];
 
 const StandAloneLoadPage: React.FC = () => {
     const [standAloneloads, setStandAloneloads] = useState<StandAloneLoad[]>([]);
@@ -46,7 +46,7 @@ const StandAloneLoadPage: React.FC = () => {
     }, [page, assignedCarrierMC, status, shipperCompanyName, fetchStandAloneLoadsData]);
 
     const handleViewLoads = (loadId: string) => {
-        router.push(`/loads/${loadId}`);
+        router.push(`/loads/${loadId}/standaloneload-detail`);
     };
 
     const handleCreateLoad = () => {

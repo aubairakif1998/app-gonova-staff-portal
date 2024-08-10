@@ -35,7 +35,7 @@ const ShipmentDropdown: React.FC<ShipmentDropdownProps> = ({ shipments }) => {
 
     const handleStandAloneLoad = () => {
         setShowDropdown(false);
-        // router.push('/loads/create-standalone-load');
+        router.push('/loads/create-standalone-load');
     };
 
     const handleDropdownToggle = () => {

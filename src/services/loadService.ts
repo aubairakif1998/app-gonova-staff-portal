@@ -66,3 +66,21 @@ export const fetchStandAloneLoads = async (
         };
     }
 };
+
+export async function fetchLoadById(lid: string | string[]) {
+    try {
+        const id = Array.isArray(lid) ? lid[0] : lid;
+        const response = await fetch(`/api/get-loads/${id}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch load data');
+        }
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.message || 'a Error fetching data');
+        }
+        return { success: true, data: data.load };
+    } catch (error) {
+        console.error('Error fetching load data:', error);
+        return { success: false, data: null, message: `404 Load not found` };
+    }
+}
