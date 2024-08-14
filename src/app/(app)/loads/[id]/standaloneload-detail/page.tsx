@@ -1,421 +1,643 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { fetchStandAloneLoadById } from '@/services/standAloneLoadService';
+"use client";
+import { useCallback, useEffect, useState } from 'react';
+import { fetchStandAloneLoadById, updateStandAloneLoad, deleteStandAloneLoad } from '@/services/standAloneLoadService'; // Assuming this is your service
 import { StandAloneLoad } from '@/Interfaces/StandAloneLoad';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { Carrier } from '@/Interfaces/carrier';
+import { Shipper } from '@/Interfaces/Shipper';
+import { Button } from '@/components/ui/button';
+import { carrierListState, selectedCarrierState } from '@/recoil/atom';
+import { useRecoilValue, useResetRecoilState, useRecoilValueLoadable } from 'recoil';
+import { toast } from '@/components/ui/use-toast';
+import { CarrierDropdown } from '@/components/CarrierDropdown';
+import { ClipLoader } from 'react-spinners';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { date } from 'zod';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+const statusOptions = ["Upcoming", "InTransit", "Completed", "Cancelled"];
+const serviceTypeOptions = ["LTL", "Full Truckload", "Small Shipments"];
+const packagingTypeOptions = ["Pallet", "Box", "Crate", "Bundle", "Drum", "Roll", "Bale"];
+// Helper function to format date as MM/DD/YYYY
+const formatDate = (date: any) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${month}/${day}/${year}`;
+};
 
-interface Data {
-    success: boolean;
-    data: StandAloneLoad | null;
-    message?: string;
-}
-
+// Helper function to parse MM/DD/YYYY date input back to Date object
+const parseDate = (dateStr: any) => {
+    const [month, day, year] = dateStr.split('/').map(Number);
+    return new Date(year, month - 1, day);
+};
 const StandALoneLoadDetailPage = () => {
-    const [standAloneLoadData, setstandAloneLoadData] = useState<StandAloneLoad | null>(null);
+    const [standAloneLoadData, setStandAloneLoadData] = useState<StandAloneLoad | null>(null);
+    const [carrierData, setCarrierData] = useState<Carrier | null>(null);
+    const [shipperData, setShipperData] = useState<Shipper | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [isCarrierEditing, setIsCarrierEditing] = useState<boolean>(false);
+    const [isPickDropEditing, setIsPickDropEditing] = useState<boolean>(false);
+    const [isItemInfoEditing, setIsItemInfoEditing] = useState<boolean>(false);
+    const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
     const { id } = useParams();
+    const selectedCarrier = useRecoilValue(selectedCarrierState);
+    const carrierLoadable = useRecoilValueLoadable(carrierListState);
+    const resetSelectedCarrier = useResetRecoilState(selectedCarrierState);
+    const router = useRouter();
+    const [originalItemInfo, setOriginalItemInfo] = useState({
+        itemDescription: '',
+        serviceType: '',
+        dimensions: { length: 0, width: 0, height: 0 },
+        weight: 0,
+        quantity: 0
+    });
+    const [originalPickDropInfo, setOriginalPickDropInfo] = useState({
+        pickupDate: '',
+        dropOffDate: '',
+        pickupLocation: '',
+        deliveryLocation: '',
+    });
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetchStandAloneLoadById(id);
+            if (response.success) {
+                setStandAloneLoadData(response.standAloneLoad);
+                setCarrierData(response.carrier);
+                setShipperData(response.shipper);
+                setSelectedStatus(response.standAloneLoad.status);
 
-    const statusOptions = [
-        "Carrier not assigned",
-        "Upcoming",
-        "InTransit",
-        "Completed",
-        "Cancelled"
-    ];
+                setOriginalPickDropInfo({
+                    pickupDate: formatDate(response.standAloneLoad.pickupDate),
+                    dropOffDate: formatDate(response.standAloneLoad.dropOffDate),
+                    pickupLocation: response.standAloneLoad.pickupLocation,
+                    deliveryLocation: response.standAloneLoad.deliveryLocation,
+                });
 
-    const serviceTypeOptions = [
-        "Full Truckload",
-        "LTL",
-        "Small Shipement",
-    ];
+                setOriginalItemInfo({
+                    itemDescription: response.standAloneLoad.itemDescription,
+                    serviceType: response.standAloneLoad.serviceType,
+                    dimensions: response.standAloneLoad.dimensions,
+                    weight: response.standAloneLoad.weight,
+                    quantity: response.standAloneLoad.quantity
+                });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                const response: Data = await fetchStandAloneLoadById(id);
-                if (response.success) {
-                    setstandAloneLoadData(response.data);
-                } else {
-                    setstandAloneLoadData(null);
-                    setError(response.message || 'Failed to fetch data');
-                }
-            } catch (err) {
-                console.error("Error while fetching StandALoneload info:", err);
-                setError('An unexpected error occurred.');
-            } finally {
-                setLoading(false);
+
+
+            } else {
+                setError(response.message || 'Failed to fetch data');
+                toast({
+                    title: 'Error',
+                    description: response.message || 'Failed to fetch data',
+                    variant: 'destructive',
+                });
             }
-        };
-        fetchData();
+        } catch (err) {
+            console.error("Error while fetching StandAloneLoad info:", err);
+            setError('An unexpected error occurred.');
+            toast({
+                title: 'Error',
+                description: 'An unexpected error occurred.',
+                variant: 'destructive',
+            });
+        } finally {
+            setLoading(false);
+        }
     }, [id]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
-        setstandAloneLoadData(prevData => ({
-            ...prevData!,
-            [name]: value,
-        }));
+    useEffect(() => {
+        fetchData();
+        return () => {
+            resetSelectedCarrier();
+        };
+    }, [fetchData, resetSelectedCarrier]);
+
+    const handleCarrierEditing = () => {
+        setIsCarrierEditing(true);
+    };
+    const handleItemEditing = () => {
+        setIsItemInfoEditing(true);
+    };
+    const handlePickDropEditing = () => {
+        setIsPickDropEditing(true);
+    };
+    const handleSaveCarrierEditing = async () => {
+        const body = {
+            assignedCarrierMC: selectedCarrier?.transportMCNumber,
+            status: selectedStatus || "Upcoming"
+        };
+
+        try {
+            const response = await updateStandAloneLoad(id, body);
+
+            if (response.success) {
+                setStandAloneLoadData(response.standAloneLoad);
+                setSuccessMessage('Carrier info updated successfully!');
+                toast({
+                    title: 'Success',
+                    description: 'Carrier info updated successfully!',
+                });
+                setError(null);
+            } else {
+                setError(response.message || 'Failed to update carrier info');
+                toast({
+                    title: 'Updation Failed',
+                    description: response.message || 'An unexpected error occurred while updating carrier info.',
+                    variant: 'destructive',
+                });
+                setSuccessMessage(null);
+            }
+        } catch (error) {
+            console.error('Error updating carrier info:', error);
+            setError('An unexpected error occurred while updating carrier info.');
+            toast({
+                title: 'Updation Failed',
+                description: 'An unexpected error occurred while updating carrier info.',
+                variant: 'destructive',
+            });
+            setSuccessMessage(null);
+        } finally {
+            setIsCarrierEditing(false);
+            resetSelectedCarrier();
+        }
+    };
+    const handleSavePickupDropOff = async () => {
+        if (standAloneLoadData) {
+            // Basic validation
+            if (
+                !standAloneLoadData.pickupDate ||
+                !standAloneLoadData.dropOffDate ||
+                !standAloneLoadData.pickupLocation ||
+                !standAloneLoadData.deliveryLocation
+            ) {
+                toast({
+                    title: 'Validation Error',
+                    description: 'Please ensure all fields are filled in.',
+                    variant: 'destructive',
+                });
+                return;
+            }
+
+            // Check for changes
+            const hasChanges = JSON.stringify(originalPickDropInfo) !== JSON.stringify({
+                pickupDate: standAloneLoadData.pickupDate,
+                dropOffDate: standAloneLoadData.dropOffDate,
+                pickupLocation: standAloneLoadData.pickupLocation,
+                deliveryLocation: standAloneLoadData.deliveryLocation,
+            });
+
+            if (hasChanges) {
+                try {
+                    const response = await updateStandAloneLoad(id, {
+                        pickupDate: standAloneLoadData.pickupDate,
+                        dropOffDate: standAloneLoadData.dropOffDate,
+                        pickupLocation: standAloneLoadData.pickupLocation,
+                        deliveryLocation: standAloneLoadData.deliveryLocation,
+                    });
+
+                    if (response.success) {
+                        setStandAloneLoadData(response.standAloneLoad);
+                        setSuccessMessage('Item info updated successfully!');
+                        toast({
+                            title: 'Success',
+                            description: 'Item info updated successfully!',
+                        });
+                        setError(null);
+                        setOriginalPickDropInfo({
+                            pickupDate: formatDate(response.standAloneLoad.pickupDate),
+                            dropOffDate: formatDate(response.standAloneLoad.dropOffDate),
+                            pickupLocation: response.standAloneLoad.pickupLocation,
+                            deliveryLocation: response.standAloneLoad.deliveryLocation,
+                        });
+                    } else {
+                        setError(response.message || 'Failed to update item info');
+                        toast({
+                            title: 'Updation Failed',
+                            description: response.message || 'An unexpected error occurred while updating item info.',
+                            variant: 'destructive',
+                        });
+                        setSuccessMessage(null);
+                    }
+                } catch (error) {
+                    console.error('Error updating item info:', error);
+                    setError('An unexpected error occurred while updating PickDrop info.');
+                    toast({
+                        title: 'Updation Failed',
+                        description: 'An unexpected error occurred while updating PickDrop info.',
+                        variant: 'destructive',
+                    });
+                    setSuccessMessage(null);
+                } finally {
+                    setIsPickDropEditing(false);
+                }
+            } else {
+                toast({
+                    title: 'No Changes',
+                    description: 'No changes were made to the PickDrop info.',
+                });
+                setIsPickDropEditing(false);
+            }
+        }
+    };
+    const handleSaveItemInfo = async () => {
+        if (standAloneLoadData) {
+            // Basic validation to ensure required fields are not empty
+            if (
+                !standAloneLoadData.itemDescription ||
+                !standAloneLoadData.serviceType ||
+                !standAloneLoadData.dimensions.length ||
+                !standAloneLoadData.dimensions.width ||
+                !standAloneLoadData.dimensions.height ||
+                !standAloneLoadData.weight ||
+                !standAloneLoadData.quantity
+            ) {
+                toast({
+                    title: 'Validation Error',
+                    description: 'Please ensure all fields are filled in.',
+                    variant: 'destructive',
+                });
+                return;
+            }
+
+            // Check if there are any changes
+            const hasChanges = JSON.stringify(originalItemInfo) !== JSON.stringify({
+                itemDescription: standAloneLoadData.itemDescription,
+                serviceType: standAloneLoadData.serviceType,
+                dimensions: standAloneLoadData.dimensions,
+                weight: standAloneLoadData.weight,
+                quantity: standAloneLoadData.quantity
+            });
+
+            if (hasChanges) {
+                try {
+                    const response = await updateStandAloneLoad(id, {
+                        itemDescription: standAloneLoadData.itemDescription,
+                        serviceType: standAloneLoadData.serviceType,
+                        dimensions: standAloneLoadData.dimensions,
+                        weight: standAloneLoadData.weight,
+                        quantity: standAloneLoadData.quantity
+                    });
+
+                    if (response.success) {
+                        setStandAloneLoadData(response.standAloneLoad);
+                        setSuccessMessage('Item info updated successfully!');
+                        toast({
+                            title: 'Success',
+                            description: 'Item info updated successfully!',
+                        });
+                        setError(null);
+                        setOriginalItemInfo({
+                            itemDescription: standAloneLoadData.itemDescription,
+                            serviceType: standAloneLoadData.serviceType,
+                            dimensions: standAloneLoadData.dimensions,
+                            weight: standAloneLoadData.weight,
+                            quantity: standAloneLoadData.quantity
+                        });
+                    } else {
+                        setError(response.message || 'Failed to update item info');
+                        toast({
+                            title: 'Updation Failed',
+                            description: response.message || 'An unexpected error occurred while updating item info.',
+                            variant: 'destructive',
+                        });
+                        setSuccessMessage(null);
+                    }
+                } catch (error) {
+                    console.error('Error updating item info:', error);
+                    setError('An unexpected error occurred while updating item info.');
+                    toast({
+                        title: 'Updation Failed',
+                        description: 'An unexpected error occurred while updating item info.',
+                        variant: 'destructive',
+                    });
+                    setSuccessMessage(null);
+                } finally {
+                    setIsItemInfoEditing(false);
+                }
+            } else {
+                toast({
+                    title: 'No Changes',
+                    description: 'No changes were made to the item info.',
+                });
+                setIsItemInfoEditing(false);
+            }
+        }
     };
 
-    const handleSave = () => {
-        // Implement the save functionality to update the data in the backend.
-        console.log("Saving data...", standAloneLoadData);
-        setIsEditing(false);
+
+
+
+
+    const handleStatusChange = async (status: string) => {
+        if (carrierData) {
+            setSelectedStatus(status);
+            const body = {
+                status: status
+            };
+
+            try {
+                const response = await updateStandAloneLoad(id, body);
+
+                if (response.success) {
+                    setStandAloneLoadData(response.standAloneLoad);
+                    setSuccessMessage('Carrier info updated successfully!');
+                    toast({
+                        title: 'Success',
+                        description: 'Carrier info updated successfully!',
+                    });
+                    setError(null);
+                } else {
+                    setError(response.message || 'Failed to update carrier info');
+                    toast({
+                        title: 'Updation Failed',
+                        description: response.message || 'An unexpected error occurred while updating carrier info.',
+                        variant: 'destructive',
+                    });
+                    setSuccessMessage(null);
+                }
+            } catch (error) {
+                console.error('Error updating carrier info:', error);
+                setError('An unexpected error occurred while updating carrier info.');
+                toast({
+                    title: 'Updation Failed',
+                    description: 'An unexpected error occurred while updating carrier info.',
+                    variant: 'destructive',
+                });
+                setSuccessMessage(null);
+            } finally {
+                setIsCarrierEditing(false);
+                resetSelectedCarrier();
+            }
+        }
+
+    };
+
+    const handleRefresh = () => {
+        fetchData();
+    };
+
+    const handleDeleteLoad = async () => {
+        try {
+            const response = await deleteStandAloneLoad(id);
+
+            if (response.success) {
+                toast({
+                    title: 'Deleted',
+                    description: response.message || 'Load deleted successfully!',
+                });
+                router.replace('/loads'); // Navigate to a list or home page after deletion
+            } else {
+                setError(response.message || 'Failed to delete the load');
+                toast({
+                    title: 'Deletion Failed',
+                    description: response.message || 'An unexpected error occurred while deleting the load.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('Error deleting load:', error);
+            setError('An unexpected error occurred while deleting the load.');
+            toast({
+                title: 'Deletion Failed',
+                description: 'An unexpected error occurred while deleting the load.',
+                variant: 'destructive',
+            });
+        }
     };
 
     if (loading) {
-        return <div className="text-center mt-4">Loading...</div>;
-    }
-
-    if (!standAloneLoadData && error) {
-        return <div className="text-center mt-4 text-red-500">{error}</div>;
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <ClipLoader color="#000" loading={true} size={50} />
+            </div>
+        );
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen flex flex-col items-center">
-            <div className="w-full max-w-3xl bg-white p-8 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Standalone Load Data</h1>
-                <div>
-                    {/* Agent Staff Member ID */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Agent Staff Member ID
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="agentStaffMemberId"
-                                value={standAloneLoadData?.agentStaffMemberId || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.agentStaffMemberId || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
+        <div className="p-6 bg-gray-50 min-h-screen flex flex-col items-start space-y-4">
+            <h1 className="text-xl font-bold mb-4">StandAloneLoad Details</h1>
 
-                    {/* Pickup Date */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Pickup Date
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="pickupDate"
-                                value={standAloneLoadData?.pickupDate || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.pickupDate || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
+            {/* Action Bar */}
+            <div className="flex justify-start w-full max-w-md mb-4">
+                <Button onClick={handleRefresh} className="mr-2">Refresh Data</Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Delete Standalone Load</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the load and remove it from our records.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleDeleteLoad}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
-                    {/* Drop Off Date */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Drop Off Date
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="dropOffDate"
-                                value={standAloneLoadData?.dropOffDate || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.dropOffDate || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Pickup Location */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Pickup Location
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="pickupLocation"
-                                value={standAloneLoadData?.pickupLocation || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.pickupLocation || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Delivery Location */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Delivery Location
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="deliveryLocation"
-                                value={standAloneLoadData?.deliveryLocation || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.deliveryLocation || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Service Type */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Service Type
-                        </label>
-                        {isEditing ? (
-                            <select
-                                name="status"
-                                value={standAloneLoadData?.serviceType || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {serviceTypeOptions.map(option => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.serviceType || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Load Contain Alcohol */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Load Contain Alcohol
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="loadContainAlcohol"
-                                value={standAloneLoadData?.loadContainAlcohol || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.loadContainAlcohol || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Hazardous Material */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Hazardous Material
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="hazardousMaterial"
-                                value={standAloneLoadData?.hazardousMaterial || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.hazardousMaterial || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Item Description */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Item Description
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="itemDescription"
-                                value={standAloneLoadData?.itemDescription || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.itemDescription || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Packaging */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Packaging
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="packaging"
-                                value={standAloneLoadData?.packaging || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.packaging || 'Data Not found'}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Dimensions */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Dimensions (L x W x H)
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="dimensions"
-                                value={`${standAloneLoadData?.dimensions.length || ''} x ${standAloneLoadData?.dimensions.width || ''} x ${standAloneLoadData?.dimensions.height || ''}`}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {`${standAloneLoadData?.dimensions.length} x ${standAloneLoadData?.dimensions.width} x ${standAloneLoadData?.dimensions.height}`}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Weight */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Weight
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="weight"
-                                value={standAloneLoadData?.weight || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.weight}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Quantity */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Quantity
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="quantity"
-                                value={standAloneLoadData?.quantity || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.quantity}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Shipment Requirement */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Shipment Requirement
-                        </label>
-                        {isEditing ? (
-                            <input
-                                type="text"
-                                name="shipmentRequirement"
-                                value={standAloneLoadData?.shipmentRequirement || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            />
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.shipmentRequirement}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Status */}
-                    <div className="mb-6">
-                        <label className="block text-lg font-medium text-gray-700 mb-2">
-                            Status
-                        </label>
-                        {isEditing ? (
-                            <select
-                                name="status"
-                                value={standAloneLoadData?.status || ''}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {statusOptions.map(option => (
-                                    <option key={option} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                            </select>
-                        ) : (
-                            <div className="bg-gray-100 p-4 rounded-md shadow-md">
-                                {standAloneLoadData?.status}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="flex justify-center">
-                        {isEditing ? (
-                            <>
-                                <button
-                                    onClick={handleSave}
-                                    className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-blue-600 transition-colors"
-                                >
-                                    Save
-                                </button>
-                                <button
-                                    onClick={() => setIsEditing(false)}
-                                    className="bg-gray-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-gray-600 transition-colors ml-4"
-                                >
-                                    Cancel
-                                </button>
-                            </>
-                        ) : (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="bg-blue-500 text-white px-6 py-2 rounded-md shadow-md hover:bg-blue-600 transition-colors"
-                            >
-                                Edit
-                            </button>
-                        )}
-                    </div>
-                </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                    <h2 className="text-lg font-semibold mb-2">Shipper Info</h2>
+                    <p><strong>Company Name:</strong> {shipperData?.companyName}</p>
+                    <p><strong>Email:</strong> {shipperData?.email}</p>
+                </div>
+
+                <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                    <h2 className="text-lg font-semibold mb-2">Carrier Info</h2>
+                    {isCarrierEditing ? (
+                        <>
+                            {carrierLoadable.state === 'loading' && (
+                                <div className="text-center">
+                                    <ClipLoader color="#000" loading={true} size={50} />
+                                </div>
+                            )}
+                            {carrierLoadable.state === 'hasError' && (
+                                <p className="text-red-500">Error loading carriers.</p>
+                            )}
+                            {carrierLoadable.state === 'hasValue' && (
+                                <>
+                                    <CarrierDropdown carriers={carrierLoadable.contents} />
+                                    <div className="flex justify-end space-x-4 mt-4">
+                                        <Button variant="outline" onClick={() => setIsCarrierEditing(false)}>Cancel</Button>
+                                        <Button onClick={handleSaveCarrierEditing}>Save</Button>
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {carrierData ? (
+                                <>
+                                    <p><strong>Company Name:</strong> {carrierData.companyName}</p>
+                                    <p><strong>MC Number:</strong> {carrierData.transportMCNumber}</p>
+                                    <Button className="mt-2" onClick={handleCarrierEditing}>Edit Carrier</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <p>No Carrier assigned yet</p>
+                                    <Button className="mt-2" onClick={handleCarrierEditing}>Assign Carrier</Button>
+                                </>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                    <h2 className="text-lg font-semibold mb-2">Status</h2>
+                    <select
+                        value={selectedStatus || ''}
+                        onChange={(e) => handleStatusChange(e.target.value)}
+                        disabled={!carrierData}
+                        className="p-2 border border-gray-300 rounded-md w-full"
+                    >
+                        <option value="">Select Status</option>
+                        {statusOptions.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
+                </div>
+
+
+                {
+                    isPickDropEditing ? <>
+                        <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                            <Label>Pickup Location:</Label>
+                            <Input
+                                type="text"
+                                value={standAloneLoadData?.pickupLocation || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, pickupLocation: e.target.value }))}
+                            />
+
+                            <Label>DropOff  Location:</Label>
+                            <Input
+                                type="text"
+                                value={standAloneLoadData?.deliveryLocation || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, deliveryLocation: e.target.value }))}
+                            />
+                            <Label>Pickup Date:</Label>
+                            <Input
+                                type="date"
+                                value={standAloneLoadData?.pickupDate || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, pickupDate: e.target.value }))}
+                            />
+                            <Label>DropOff Date:</Label>
+                            <Input
+                                type="date"
+                                value={standAloneLoadData?.dropOffDate || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, dropOffDate: e.target.value }))}
+                            />
+
+                            <Button variant="outline" onClick={() => setIsPickDropEditing(false)}>Cancel</Button>
+                            <Button onClick={handleSavePickupDropOff}>Save</Button></div>
+                    </>
+                        : <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                            <h2 className="text-lg font-semibold mb-2">Pickup and DropOff Info</h2>
+                            <p><strong>Pickup Date:</strong> {standAloneLoadData?.pickupDate ? formatDate(standAloneLoadData.pickupDate) : 'N/A'}</p>
+                            <p><strong>Pickup Location:</strong> {standAloneLoadData?.pickupLocation || 'N/A'}</p>
+                            <p><strong>DropOff Date:</strong> {standAloneLoadData?.dropOffDate ? formatDate(standAloneLoadData.dropOffDate) : 'N/A'}</p>
+                            <p><strong>DropOff Location:</strong> {standAloneLoadData?.deliveryLocation || 'N/A'}</p>
+                            <Button className="mt-2" onClick={handlePickDropEditing}>Edit Info</Button>
+                        </div>
+
+                }
+
+                {
+                    isItemInfoEditing ? (
+                        <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                            <Label>Item Desc:</Label>
+                            <Input
+                                type="text"
+                                value={standAloneLoadData?.itemDescription || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, itemDescription: e.target.value }))}
+                            />
+                            <Label>Service Type:</Label>
+                            <select
+                                value={standAloneLoadData?.serviceType || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, serviceType: e.target.value }))}
+                                className="p-2 border border-gray-300 rounded-md w-full"
+                            >
+                                <option value="">Select Service Type</option>
+                                {serviceTypeOptions.map((option) => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
+
+                            {/* <Label>Packaging:</Label>
+                            <select
+                                value={standAloneLoadData?.packaging || ''}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, packaging: e.target.value }))}
+                                className="p-2 border border-gray-300 rounded-md w-full"
+                            >
+                                <option value="">Select Packaging</option>
+                                {packagingTypeOptions.map((option) => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select> */}
+                            <Label>Dimensions - Length /inches:</Label>
+                            <Input
+                                type="number"
+                                value={standAloneLoadData?.dimensions?.length || 0}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, dimensions: { ...prev!.dimensions, length: parseFloat(e.target.value) } }))}
+                            />
+                            <Label>Dimensions - Width /inches:</Label>
+                            <Input
+                                type="number"
+                                value={standAloneLoadData?.dimensions?.width || 0}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, dimensions: { ...prev!.dimensions, width: parseFloat(e.target.value) } }))}
+                            />
+                            <Label>Dimensions - Height /inches:</Label>
+                            <Input
+                                type="number"
+                                value={standAloneLoadData?.dimensions?.height || 0}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, dimensions: { ...prev!.dimensions, height: parseFloat(e.target.value) } }))}
+                            />
+                            <Label>Weight /Ibs :</Label>
+                            <Input
+                                type="number"
+                                value={standAloneLoadData?.weight || 0}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, weight: parseFloat(e.target.value) }))}
+                            />
+
+                            <Label>Quantity:</Label>
+                            <Input
+                                type="number"
+                                value={standAloneLoadData?.quantity || 0}
+                                onChange={(e) => setStandAloneLoadData(prev => ({ ...prev!, quantity: parseInt(e.target.value) }))}
+                            />
+                            <Button variant="outline" onClick={() => setIsItemInfoEditing(false)}>Cancel</Button>
+                            <Button onClick={handleSaveItemInfo}>Save</Button>
+                        </div>
+                    ) : <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+                        <h2 className="text-lg font-semibold mb-2">Item Info</h2>
+                        <p><strong>Item Desc: </strong> {standAloneLoadData?.itemDescription}</p>
+                        <p><strong>serviceType:</strong> {standAloneLoadData?.serviceType}</p>
+                        <p><strong>Dimensions:</strong> {standAloneLoadData?.dimensions.length} X {standAloneLoadData?.dimensions.width} X {standAloneLoadData?.dimensions.height}</p>
+                        <p><strong>Weight:</strong> {standAloneLoadData?.weight}</p>
+                        <p><strong>Quantity:</strong> {standAloneLoadData?.quantity}</p>
+                        <Button className="mt-2" onClick={handleItemEditing}>Edit Item Info</Button>
+                    </div>
+                }
+            </div>
+
         </div>
     );
 };

@@ -51,13 +51,12 @@ const CarrierSchema: Schema<ICarrier> = new Schema({
         driverName: { type: String, required: true },
         driverContactNo: { type: String, required: true },
     },
-    assignedLoads: [{ type: Schema.Types.ObjectId, ref: 'Load' }], // References to LoadTransactions
     createdBy: {
         type: String,
         required: true,
     }
 }, {
-    timestamps: true, // Adds createdAt and updatedAt fields
+    timestamps: true,
 });
 
 const CarrierModel = mongoose.models.Carrier || mongoose.model<ICarrier>('Carrier', CarrierSchema);

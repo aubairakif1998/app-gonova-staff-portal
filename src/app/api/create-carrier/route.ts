@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
             address: carrierData.addressStreet + ',' + carrierData.addressCity + ',' + carrierData.addressZip,
             contacts: carrierData.contacts,
             vehicleInformation: carrierData.vehicleInformation,
-            assignedLoads: [],
             createdBy: _user.email
         }
 

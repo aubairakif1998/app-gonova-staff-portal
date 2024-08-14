@@ -38,11 +38,6 @@ export async function POST(request: Request) {
             { shipmentID: requestData.loadData.shipmentRefId },
             { $push: { loads: savedLoad._id } }
         );
-        //    .findOne({
-        //     $or: [
-        //       { shipmentID: requestData.loadData.shipmentRefId }
-        //     ],
-        //   });
         return Response.json(
             { message: 'Load created', success: true, data: savedLoad },
             { status: 200 }

@@ -84,3 +84,5 @@ export async function fetchLoadById(lid: string | string[]) {
         return { success: false, data: null, message: `404 Load not found` };
     }
 }
+
+
