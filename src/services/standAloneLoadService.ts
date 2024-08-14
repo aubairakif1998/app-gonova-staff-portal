@@ -63,7 +63,7 @@ export async function fetchStandAloneLoadById(Stlid: string | string[]) {
 }
 export async function updateStandAloneLoad(id: string | string[], updatedFields: Partial<any>) {
     try {
-        const response = await fetch(`/api/update-standalone-load/${id}`, {
+        const response = await fetch(`/api/get-standalone-load/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
