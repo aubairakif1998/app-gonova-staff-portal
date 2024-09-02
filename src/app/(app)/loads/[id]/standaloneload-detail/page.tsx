@@ -212,10 +212,10 @@ const StandALoneLoadDetailPage = () => {
 
                     if (response.success) {
                         setStandAloneLoadData(response.standAloneLoad);
-                        setSuccessMessage('Item info updated successfully!');
+                        setSuccessMessage('Pick & Drop updated successfully!');
                         toast({
                             title: 'Success',
-                            description: 'Item info updated successfully!',
+                            description: 'Pick & Drop updated successfully!',
                         });
                         setError(null);
                         setOriginalPickDropInfo({
@@ -355,10 +355,10 @@ const StandALoneLoadDetailPage = () => {
 
                 if (response.success) {
                     setStandAloneLoadData(response.standAloneLoad);
-                    setSuccessMessage('Carrier info updated successfully!');
+                    setSuccessMessage('Status updated successfully!');
                     toast({
                         title: 'Success',
-                        description: 'Carrier info updated successfully!',
+                        description: 'Status updated successfully!',
                     });
                     setError(null);
                 } else {
@@ -435,7 +435,7 @@ const StandALoneLoadDetailPage = () => {
             {/* Action Bar */}
             <div className="flex justify-start w-full max-w-md mb-4">
                 <Button onClick={handleRefresh} className="mr-2">Refresh Data</Button>
-                <AlertDialog>
+                {/* <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive">Delete Standalone Load</Button>
                     </AlertDialogTrigger>
@@ -451,7 +451,7 @@ const StandALoneLoadDetailPage = () => {
                             <AlertDialogAction onClick={handleDeleteLoad}>Continue</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
-                </AlertDialog>
+                </AlertDialog> */}
 
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
