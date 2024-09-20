@@ -143,6 +143,9 @@ function DesktopNav() {
         <NavItem href="/carriers" label="Carriers">
           <div className="text-sm font-bold">Carriers</div>
         </NavItem>
+        <NavItem href="/onboarding" label="Boarding">
+          <div className="text-sm font-bold">Boarding</div>
+        </NavItem>
       </nav>
       <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
         <Tooltip>

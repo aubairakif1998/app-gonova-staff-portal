@@ -1,6 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
-
 export interface IShipper extends Document {
     companyName: string;
     locationAddress: string;
@@ -11,6 +10,9 @@ export interface IShipper extends Document {
     phoneNumber: string;
     standAloneLoads: Types.ObjectId[];
     shipments: Types.ObjectId[];
+    activationToken?: string;  // Optional field
+    activationTokenExpire?: Date;  // Optional field
+    password: string;  // Required field for the password
 }
 
 const ShipperSchema: Schema<IShipper> = new Schema({
@@ -54,6 +56,18 @@ const ShipperSchema: Schema<IShipper> = new Schema({
         type: Boolean,
         default: false,
     },
+    password: {
+        type: String,  // Password should be stored as a hashed string
+        required: [true, 'Password is required'],
+    },
+    activationToken: {
+        type: String,  // Token as a string
+        default: null,  // Default to null
+    },
+    activationTokenExpire: {
+        type: Date,  // Expiration date for the token
+        default: null,  // Default to null
+    },
     shipments: [{ type: Schema.Types.ObjectId, ref: 'Shipment' }],
     standAloneLoads: [{ type: Schema.Types.ObjectId, ref: 'StandAloneLoad' }],
 }, {
@@ -62,4 +76,4 @@ const ShipperSchema: Schema<IShipper> = new Schema({
 
 const ShipperModel: Model<IShipper> = mongoose.models.Shipper || mongoose.model<IShipper>('Shipper', ShipperSchema);
 
-export default ShipperModel; 
+export default ShipperModel;
