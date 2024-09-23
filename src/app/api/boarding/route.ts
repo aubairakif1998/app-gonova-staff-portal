@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         // };
         // Send email with activation link
         // await sendActivationEmail(email, activationUrl,);
-        // return NextResponse.json({ success: true, message: 'Shipper/Customer registered. Activation email sent.' }, { status: 201 });
+        return NextResponse.json({ success: true, message: 'Shipper/Customer registered. Activation email sent.' }, { status: 201 });
 
     } catch (error) {
         console.error('Error registering user:', error);
