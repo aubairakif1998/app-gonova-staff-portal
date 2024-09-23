@@ -20,7 +20,14 @@ export async function POST(request: Request) {
     try {
         const { email, city, companyName, locationAddress, phoneNumber, zip } = await request.json();
         const existingShipperUser = await ShipperModel.findOne({ email });
-
+        const details = {
+            email,
+            city,
+            companyName,
+            locationAddress,
+            phoneNumber,
+            zip
+        };
         if (existingShipperUser) {
             return NextResponse.json({ success: false, message: 'Shipper/Customer already exists with this email' }, { status: 400 });
         }
@@ -49,7 +56,7 @@ export async function POST(request: Request) {
         const activationUrl = `${process.env.NEXT_CUSTOMER_ACTIVATE_APP_URL}/activate/${activationToken}`;
 
         // Send email with activation link
-        await sendActivationEmail(email, activationUrl);
+        await sendActivationEmail(email, activationUrl, details);
 
         return NextResponse.json({ success: true, message: 'Shipper/Customer registered. Activation email sent.' }, { status: 201 });
 
