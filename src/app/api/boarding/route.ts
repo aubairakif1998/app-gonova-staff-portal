@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         //     zip
         // };
         // Send email with activation link
-        // await sendActivationEmail(email, activationUrl,);
+        await sendActivationEmail(email, activationUrl,);
         return NextResponse.json({ success: true, message: 'Shipper/Customer registered. Activation email sent.' }, { status: 201 });
 
     } catch (error) {
