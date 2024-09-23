@@ -1,8 +1,9 @@
 import { atom, selector } from 'recoil';
 import { Shipper } from '@/Interfaces/Shipper';
-import { fetchAllShippers, Shipment, fetchShipmentsByShipperId } from '@/services/shipperService';
+import { fetchAllShippers, fetchShipmentsByShipperId } from '@/services/shipperService';
 import { fetchCarriers_POST, } from '@/services/carrierService';
 import { Carrier } from "@/Interfaces/carrier"
+import { Shipment } from '@/Interfaces/Shipment';
 
 
 export const selectedShipperState = atom<Shipper | null>({
