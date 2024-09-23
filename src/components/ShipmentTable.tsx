@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Shipment } from '@/services/shipperService';
+import { Shipment } from '@/Interfaces/Shipment';
 
 interface ShipmentTableProps {
     shipments: Shipment[];
