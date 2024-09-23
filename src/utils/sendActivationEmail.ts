@@ -22,6 +22,7 @@ const sendActivationEmail = async (email: string, activationUrl: string, details
             <p><strong>Your Details:</strong></p>
             <ul>
                 <li>Email: ${details.email}</li>
+                <li>Company Name: ${details.companyName}</li>
                 <li>City: ${details.city}</li>
                 <li>Location Address: ${details.locationAddress}</li>
                 <li>Phone Number: ${details.phoneNumber}</li>
