@@ -40,16 +40,16 @@ export async function POST(request: Request) {
 
         await newShipper.save();
         const activationUrl = `${process.env.NEXT_CUSTOMER_ACTIVATE_APP_URL}/activate/${activationToken}`;
-        // const details = {
-        //     email,
-        //     city,
-        //     companyName,
-        //     locationAddress,
-        //     phoneNumber,
-        //     zip
-        // };
+        const details = {
+            email,
+            city,
+            companyName,
+            locationAddress,
+            phoneNumber,
+            zip
+        };
         // Send email with activation link
-        await sendActivationEmail(email, activationUrl,);
+        await sendActivationEmail(email, activationUrl, details);
         return NextResponse.json({ success: true, message: 'Shipper/Customer registered. Activation email sent.' }, { status: 201 });
 
     } catch (error) {
