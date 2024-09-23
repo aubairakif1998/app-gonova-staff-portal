@@ -1,4 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/options';
+
 import CarrierModel from '@/model/Carrier';
 import { z } from 'zod';
 const dotValidation = z
@@ -15,7 +18,15 @@ const dotQuerySchema = z.object({
 
 export async function GET(request: Request) {
     await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
 
+    if (!session || !_user) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Not authenticated' }),
+            { status: 401 }
+        );
+    }
     try {
         const { searchParams } = new URL(request.url);
         const queryParams = {

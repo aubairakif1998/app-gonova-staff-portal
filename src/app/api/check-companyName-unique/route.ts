@@ -1,7 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
+import ShipperModel from '@/model/Shipper';
 import { z } from 'zod';
-import { companyNameValidation } from '@/schemas/signUpSchema';
-import CarrierModel from '@/model/Carrier';
+import { companyNameValidation } from '@/schemas/customerOnBoradingSchema';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/options';
 
@@ -20,6 +20,7 @@ export async function GET(request: Request) {
             { status: 401 }
         );
     }
+
     try {
         const { searchParams } = new URL(request.url);
         const queryParams = {
@@ -44,17 +45,18 @@ export async function GET(request: Request) {
 
         const { companyName } = result.data;
 
-        const existingCarrier = await CarrierModel.findOne({
+        const existingVerifiedUser = await ShipperModel.findOne({
             companyName,
+            isVerified: true,
         });
 
-        if (existingCarrier) {
+        if (existingVerifiedUser) {
             return Response.json(
                 {
                     success: false,
                     message: 'Companyname is already taken',
                 },
-                { status: 400 }
+                { status: 200 }
             );
         }
 

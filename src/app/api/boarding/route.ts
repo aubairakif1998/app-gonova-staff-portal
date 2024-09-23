@@ -3,10 +3,20 @@ import ShipperModel, { IShipper } from '@/model/Shipper';
 import crypto from 'crypto';
 import sendActivationEmail from '@/utils/sendActivationEmail'; // Utility to send email
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/options';
 
 export async function POST(request: Request) {
     await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
 
+    if (!session || !_user) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Not authenticated' }),
+            { status: 401 }
+        );
+    }
     try {
         const { email, city, companyName, locationAddress, phoneNumber, zip } = await request.json();
         const existingShipperUser = await ShipperModel.findOne({ email });
@@ -36,7 +46,7 @@ export async function POST(request: Request) {
         await newShipper.save();
 
         // Generate the URL for activation
-        const activationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/activate/${activationToken}`;
+        const activationUrl = `${process.env.NEXT_CUSTOMER_ACTIVATE_APP_URL}/activate/${activationToken}`;
 
         // Send email with activation link
         await sendActivationEmail(email, activationUrl);

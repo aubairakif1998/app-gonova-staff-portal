@@ -1,5 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
 import CarrierModel from '@/model/Carrier';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]/options';
 import { z } from 'zod';
 const transportMCNumberValidation = z
     .string()
@@ -11,7 +13,15 @@ const transportMCNumberQuerySchema = z.object({
 
 export async function GET(request: Request) {
     await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
 
+    if (!session || !_user) {
+        return new Response(
+            JSON.stringify({ success: false, message: 'Not authenticated' }),
+            { status: 401 }
+        );
+    }
     try {
         const { searchParams } = new URL(request.url);
         const queryParams = {

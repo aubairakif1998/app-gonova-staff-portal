@@ -39,6 +39,11 @@ const ShipperTable: React.FC<ShipperTableProps> = ({ shippers, onViewShipper, pa
             cell: info => info.getValue(),
         },
         {
+            accessorKey: 'isVerified',
+            header: 'Verified',
+            cell: info => info.getValue() ? "Yes" : "No",
+        },
+        {
             id: 'actions',
             header: 'Actions',
             cell: ({ row }) => (
