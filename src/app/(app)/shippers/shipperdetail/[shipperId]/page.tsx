@@ -3,10 +3,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { fetchShipperDetails, Shipment } from '@/services/shipperService';
+import { fetchShipperDetails } from '@/services/shipperService';
 import { ClipLoader } from 'react-spinners';
 import ShipmentTable from '@/components/ShipmentTable';
 import { Shipper } from '@/Interfaces/Shipper';
+import { Shipment } from '@/Interfaces/Shipment';
 
 const ShipperByIdPage: React.FC = () => {
     const { shipperId } = useParams();
