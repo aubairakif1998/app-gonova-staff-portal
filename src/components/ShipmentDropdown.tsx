@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import { selectedShipmentState, selectedShipperState } from '@/recoil/atom';
-import { Shipment } from '@/services/shipperService';
+import { Shipment } from '@/Interfaces/Shipment';
 
 interface ShipmentDropdownProps {
     shipments: Shipment[];
