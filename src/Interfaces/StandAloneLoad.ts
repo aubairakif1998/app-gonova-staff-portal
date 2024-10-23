@@ -1,5 +1,5 @@
 export interface StandAloneLoad {
-    _id: string;
+    standaloneId: string
     pickupDate: string;
     dropOffDate: string;
     pickupLocation: string;

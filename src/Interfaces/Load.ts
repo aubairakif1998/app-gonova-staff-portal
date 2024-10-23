@@ -1,5 +1,5 @@
 export interface Load {
-    _id: string;
+    loadId: string;
     pickupDate: string;
     dropOffDate: string;
     pickupLocation: string;

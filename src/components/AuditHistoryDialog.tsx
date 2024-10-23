@@ -74,8 +74,16 @@ export const AuditHistoryDialog: React.FC<AuditHistoryDialogProps> = ({ open, on
                                 <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
                                     <h3 className="font-semibold text-lg mb-2">Details:</h3>
                                     <div className="mb-2">
-                                        <p><strong>Changed By:</strong> <span className="text-blue-600">{selectedRecord.updatedBy}</span></p>
-                                        <p><strong>Changes Done At:</strong> <span className="text-gray-600">{new Date(selectedRecord.createdAt).toLocaleString()}</span></p>
+                                        <p>
+                                            <strong>Changed By: </strong>
+                                            <span className="text-blue-600">{selectedRecord.updatedBy}</span>
+                                        </p>
+                                        <p>
+                                            <strong>Changes Done At:</strong>
+                                            <span className="text-gray-600">
+                                                {new Date(selectedRecord.createdAt).toLocaleString()}
+                                            </span>
+                                        </p>
                                     </div>
                                     <h4 className="font-semibold text-md mt-4 mb-2">Changes:</h4>
                                     <div className="max-h-60 overflow-y-auto">
@@ -83,16 +91,22 @@ export const AuditHistoryDialog: React.FC<AuditHistoryDialogProps> = ({ open, on
                                             {selectedRecord.changes.map((change, index) => {
                                                 // Check if old and new values are different
                                                 if (change.oldValue !== change.newValue) {
+                                                    const formatValue = (value: any) =>
+                                                        typeof value === 'object' ? JSON.stringify(value) : value;
+
                                                     return (
                                                         <li key={index} className="flex items-center border-l-2 border-green-500 pl-4">
                                                             <div className="flex items-center space-x-2">
                                                                 <span className="text-green-600">&#9654;</span> {/* Right arrow */}
-
                                                                 <strong className="text-gray-800">{change.field}:</strong>
                                                                 <div className="ml-2 flex items-center space-x-2">
-                                                                    <span className="text-gray-600 bg-gray-200 px-2 py-1 rounded-sm">{change.oldValue}</span>
+                                                                    <span className="text-gray-600 bg-gray-200 px-2 py-1 rounded-sm">
+                                                                        {formatValue(change.oldValue)}
+                                                                    </span>
                                                                     <div className="text-gray-600 mx-2">→</div> {/* Arrow indicating change */}
-                                                                    <span className="text-green-600 bg-green-200 px-2 py-1 rounded-sm">{change.newValue}</span>
+                                                                    <span className="text-green-600 bg-green-200 px-2 py-1 rounded-sm">
+                                                                        {formatValue(change.newValue)}
+                                                                    </span>
                                                                 </div>
                                                             </div>
                                                         </li>
@@ -104,6 +118,8 @@ export const AuditHistoryDialog: React.FC<AuditHistoryDialogProps> = ({ open, on
                                     </div>
                                 </div>
                             )}
+
+
                         </>
                     )}
                 </div>

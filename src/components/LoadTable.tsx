@@ -48,9 +48,9 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
 
     const columns: ColumnDef<Load>[] = [
         {
-            accessorKey: "_id",
+            accessorKey: "loadId",
             header: "LoadId",
-            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("_id"))}>{row.getValue("_id")}</div>,
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("loadId"))}>{row.getValue("loadId")}</div>,
             enableSorting: true,
         },
         {
@@ -145,13 +145,13 @@ const LoadTable: React.FC<LoadTableProps> = ({ loads, onViewLoads, pageCount }) 
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
-                                onClick={() => navigator.clipboard.writeText(transaction._id)}
+                                onClick={() => navigator.clipboard.writeText(transaction.loadId)}
                             >
                                 Copy transaction ID
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                                onClick={() => onViewLoads(transaction._id)}
+                                onClick={() => onViewLoads(transaction.loadId)}
                             >
                                 View details
                             </DropdownMenuItem>

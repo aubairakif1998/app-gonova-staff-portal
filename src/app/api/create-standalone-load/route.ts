@@ -10,6 +10,16 @@ import { NextRequest } from 'next/server';
 import { authOptions } from '../auth/[...nextauth]/options';
 import StandAloneLoadModel from '@/model/StandAloneLoad';
 
+// Utility function to generate a unique 6-character load ID
+function generateStandLoadId() {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let loadId = '';
+    for (let i = 0; i < 6; i++) {
+        loadId += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return loadId;
+}
+
 export async function POST(request: Request) {
     try {
         await dbConnect();
@@ -32,13 +42,24 @@ export async function POST(request: Request) {
 
     try {
         const requestData = await request.json();
-        console.log('requestData', requestData.standAloneloadData);
-        const newLoad = new StandAloneLoadModel(requestData.standAloneloadData);
+
+        // Generate a unique 6-character load ID
+        const standLoadId = generateStandLoadId();
+
+        // Include the generated standLoadId in the new load data
+        const newLoad = new StandAloneLoadModel({
+            ...requestData.standAloneloadData,
+            standaloneId: standLoadId,  // Assign the generated standLoadId
+        });
+
         const savedLoad = await newLoad.save();
+
+        // Update the corresponding shipper record with the new load's ID
         await ShipperModel.findOneAndUpdate(
             { companyName: requestData.standAloneloadData.shipperCompanyName },
             { $push: { standAloneLoads: savedLoad._id } }
         );
+
         return Response.json(
             { message: 'StandAloneload created', success: true, data: savedLoad },
             { status: 200 }

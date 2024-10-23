@@ -15,6 +15,7 @@ import { formatDate } from '@/utils/utils';
 import { Carrier } from '@/Interfaces/carrier';
 import { Shipment } from '@/Interfaces/Shipment';
 import { AuditHistoryDialog } from '@/components/AuditHistoryDialog';
+import CommentSection from '@/components/CommentSection';
 const statusOptions = ["Upcoming", "InTransit", "Completed", "Cancelled"];
 const serviceTypeOptions = ["LTL", "Full Truckload", "Small Shipments"];
 const packagingTypeOptions = ["Pallet", "Box", "Crate", "Bundle", "Drum", "Roll", "Bale"];
@@ -52,6 +53,7 @@ const LoadDetailPage = () => {
     const fetchData = useCallback(async () => {
         setLoading(true);
         try {
+            console.log("detail load id", id)
             const response = await fetchLoadById(id);
             if (response.success) {
                 setLoadData(response.load);
@@ -289,20 +291,22 @@ const LoadDetailPage = () => {
     }
 
     return (
-        <div className="p-6 bg-gray-50 min-h-screen flex flex-col items-start space-y-4">
-            <h1 className="text-xl font-bold mb-4">Load Details</h1>
-            <div className="flex justify-start w-full max-w-md mb-4">
-                <Button className="mr-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={handleRefresh} >Refresh Data</Button>
-                <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
-                <AuditHistoryDialog
-                    open={isDialogOpen}
-                    onClose={() => setIsDialogOpen(false)}
-                    loadId={id}
-                />
+        <>
+            <div className="p-6 bg-gray-50  ">
+                <h1 className="text-xl font-bold mb-4">Load Details</h1>
+                <div className="flex justify-start w-full max-w-md h-[10px] mb-4">
+                    <Button className="mr-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={handleRefresh} >Refresh Data</Button>
+                    <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
+                    <AuditHistoryDialog
+                        open={isDialogOpen}
+                        onClose={() => setIsDialogOpen(false)}
+                        loadId={id}
+                    />
+                </div>
             </div>
 
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+            <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
                     <h2 className="text-lg font-semibold mb-2">Shipment Info</h2>
                     <p><strong>Shippent Id:</strong> {shipmentData?.shipmentID}</p>
@@ -420,9 +424,12 @@ const LoadDetailPage = () => {
                         </div>
 
                 }
-            </div>
 
-        </div>
+                <div className="md:col-span-2 bg-white shadow-md rounded-md border border-gray-200 p-4">
+                    <CommentSection />
+                </div>
+            </div>
+        </>
     );
 };
 

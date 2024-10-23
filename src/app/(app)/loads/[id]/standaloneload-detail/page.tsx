@@ -14,6 +14,8 @@ import { ClipLoader } from 'react-spinners';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { date } from 'zod';
+import { AuditHistoryDialog } from '@/components/AuditHistoryDialog';
+
 import {
     AlertDialog,
     AlertDialogAction,
@@ -25,6 +27,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import CommentSection from '@/components/CommentSection';
 const statusOptions = ["Upcoming", "InTransit", "Completed", "Cancelled"];
 const serviceTypeOptions = ["LTL", "Full Truckload", "Small Shipments"];
 const packagingTypeOptions = ["Pallet", "Box", "Crate", "Bundle", "Drum", "Roll", "Bale"];
@@ -44,6 +47,7 @@ const parseDate = (dateStr: any) => {
     return new Date(year, month - 1, day);
 };
 const StandALoneLoadDetailPage = () => {
+    const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
     const [standAloneLoadData, setStandAloneLoadData] = useState<StandAloneLoad | null>(null);
     const [carrierData, setCarrierData] = useState<Carrier | null>(null);
     const [shipperData, setShipperData] = useState<Shipper | null>(null);
@@ -435,23 +439,12 @@ const StandALoneLoadDetailPage = () => {
             {/* Action Bar */}
             <div className="flex justify-start w-full max-w-md mb-4">
                 <Button onClick={handleRefresh} className="mr-2">Refresh Data</Button>
-                {/* <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive">Delete Standalone Load</Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the load and remove it from our records.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDeleteLoad}>Continue</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog> */}
+                <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
+                <AuditHistoryDialog
+                    open={isDialogOpen}
+                    onClose={() => setIsDialogOpen(false)}
+                    loadId={id}
+                />
 
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
@@ -636,6 +629,11 @@ const StandALoneLoadDetailPage = () => {
                         <Button className="mt-2" onClick={handleItemEditing}>Edit Item Info</Button>
                     </div>
                 }
+
+
+                <div className="md:col-span-2 bg-white shadow-md rounded-md border border-gray-200 p-4">
+                    <CommentSection />
+                </div>
             </div>
 
         </div>

@@ -7,50 +7,7 @@ import CarrierModel from '@/model/Carrier';
 import { NextResponse } from 'next/server';
 import { logAuditHistory } from '@/utils/logAuditHistory'; // Ensure this is the correct import path
 
-// export async function GET(request: Request) {
-//     await dbConnect();
-//     const session = await getServerSession(authOptions);
-//     const _user = session?.user;
-
-//     if (!session || !_user) {
-//         return new Response(
-//             JSON.stringify({ success: false, message: 'Not authenticated' }),
-//             { status: 401 }
-//         );
-//     }
-
-//     try {
-//         const url = new URL(request.url);
-//         const id = url.pathname.split('/').pop();
-//         if (!id) {
-//             return new Response(
-//                 JSON.stringify({ success: false, message: 'ID is required' }),
-//                 { status: 400 }
-//             );
-//         }
-
-//         const loadDocs = await LoadModel.findById(id);
-//         if (!loadDocs) {
-//             return new Response(
-//                 JSON.stringify({ success: false, message: 'No loads found' }),
-//                 { status: 404 }
-//             );
-//         }
-
-//         return new Response(
-//             JSON.stringify({ success: true, load: loadDocs }),
-//             { status: 200 }
-//         );
-//     } catch (error) {
-//         console.error('An unexpected error occurred:', error);
-//         return new Response(
-//             JSON.stringify({ success: false, message: 'Internal server error' }),
-//             { status: 500 }
-//         );
-//     }
-// }
-
-
+// GET function to fetch Load details using loadId instead of _id
 export async function GET(request: Request) {
     await dbConnect();
     const session = await getServerSession(authOptions);
@@ -65,18 +22,19 @@ export async function GET(request: Request) {
 
     try {
         const url = new URL(request.url);
-        const id = url.pathname.split('/').pop();
-        if (!id) {
+        const loadId = url.pathname.split('/').pop();  // Get loadId from the URL
+        if (!loadId) {
             return new Response(
-                JSON.stringify({ success: false, message: 'StandAloneLoad ID is required' }),
+                JSON.stringify({ success: false, message: 'Load ID is required' }),
                 { status: 400 }
             );
         }
 
-        const loadDoc = await LoadModel.findById(id);
+        // Find the load by loadId instead of _id
+        const loadDoc = await LoadModel.findOne({ loadId });
         if (!loadDoc) {
             return new Response(
-                JSON.stringify({ success: false, message: 'No loadDoc found' }),
+                JSON.stringify({ success: false, message: 'No load found with this Load ID' }),
                 { status: 404 }
             );
         }
@@ -110,12 +68,13 @@ export async function GET(request: Request) {
     }
 }
 
+// PATCH function to update Load details using loadId instead of _id
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
     const url = new URL(request.url);
-    const id = url.pathname.split('/').pop();
+    const loadId = url.pathname.split('/').pop();  // Get loadId from the URL
     const updates = await request.json();
 
-    if (!id || !updates || typeof updates !== 'object' || Object.keys(updates).length === 0) {
+    if (!loadId || !updates || typeof updates !== 'object' || Object.keys(updates).length === 0) {
         return NextResponse.json({ error: 'Missing required parameters or invalid request body' }, { status: 400 });
     }
 
@@ -128,14 +87,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     try {
-        const existingLoad = await LoadModel.findById(id);
+        // Find the load by loadId instead of _id
+        const existingLoad = await LoadModel.findOne({ loadId });
 
         if (!existingLoad) {
             return NextResponse.json({ error: 'Load not found' }, { status: 404 });
         }
 
         // Perform update
-        const updatedLoad = await LoadModel.findByIdAndUpdate(id, { $set: updates }, { new: true });
+        const updatedLoad = await LoadModel.findOneAndUpdate({ loadId }, { $set: updates }, { new: true });
 
         if (!updatedLoad) {
             return NextResponse.json({ error: 'Load not found after update' }, { status: 404 });
@@ -148,8 +108,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
             newValue: updates[field],
         }));
 
-        // Log changes
-        await logAuditHistory(id, 'Load', _user.email, changes);
+        // Log changes to the audit history
+        await logAuditHistory(loadId, 'Load', _user.email, changes);
 
         return NextResponse.json({ success: true, message: 'Load updated successfully', load: updatedLoad });
     } catch (error) {

@@ -2,7 +2,7 @@ import mongoose, { Types, Schema, model } from 'mongoose';
 
 const auditLogSchema = new Schema({
     loadId: {
-        type: Schema.Types.ObjectId,
+        type: String,
         required: true,
         refPath: 'loadModel',
     },

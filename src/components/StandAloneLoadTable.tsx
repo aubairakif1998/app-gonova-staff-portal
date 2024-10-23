@@ -49,9 +49,9 @@ const StandAloneLoadTable: React.FC<StandAloneLoadTableProps> = ({ standAloneloa
 
     const columns: ColumnDef<StandAloneLoad>[] = [
         {
-            accessorKey: "_id",
-            header: "LoadId",
-            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("_id"))}>{row.getValue("_id")}</div>,
+            accessorKey: "standaloneId",
+            header: "Stand Alone Id",
+            cell: ({ row }) => <div onClick={() => handleCellClick(row.getValue("standaloneId"))}>{row.getValue("standaloneId")}</div>,
             enableSorting: true,
         },
         {
@@ -146,13 +146,13 @@ const StandAloneLoadTable: React.FC<StandAloneLoadTableProps> = ({ standAloneloa
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem
-                                onClick={() => navigator.clipboard.writeText(transaction._id)}
+                                onClick={() => navigator.clipboard.writeText(transaction.standaloneId)}
                             >
                                 Copy transaction ID
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                                onClick={() => onViewstandAloneLoads(transaction._id)}
+                                onClick={() => onViewstandAloneLoads(transaction.standaloneId)}
                             >
                                 View details
                             </DropdownMenuItem>

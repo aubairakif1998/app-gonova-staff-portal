@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
 export interface IStandAloneLoad extends Document {
+    standaloneId: string;
     pickupDate: Date;
     dropOffDate: Date;
     pickupLocation: string;
@@ -31,6 +32,12 @@ export interface IStandAloneLoad extends Document {
 }
 
 const StandAloneLoadSchema: Schema<IStandAloneLoad> = new Schema({
+    standaloneId: {
+        type: String,
+        required: true,  // Ensure loadId is required
+        unique: true,    // Ensure loadId is unique
+        index: true,     // Add an index for faster lookups
+    },
     pickupDate: { type: Date, required: true },
     dropOffDate: { type: Date, required: true },
     pickupLocation: { type: String, required: true },
