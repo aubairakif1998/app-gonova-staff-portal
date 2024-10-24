@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from 'react';
-import { fetchLoadById, updateLoad } from '@/services/loadService';
+import { deleteAttachedDoc, fetchLoadById, updateLoad } from '@/services/loadService';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { carrierListState, selectedCarrierState } from '@/recoil/atom';
@@ -19,9 +19,15 @@ import CommentSection from '@/components/CommentSection';
 const statusOptions = ["Upcoming", "InTransit", "Completed", "Cancelled"];
 const serviceTypeOptions = ["LTL", "Full Truckload", "Small Shipments"];
 const packagingTypeOptions = ["Pallet", "Box", "Crate", "Bundle", "Drum", "Roll", "Bale"];
+import { FileUpload } from "@/components/ui/file-upload";
+import { uploadMultipleFilesToFirebase } from '@/services/firebaseStorageService';
+import { AttachedDocsDialog } from '@/components/AttachedDocs';
+import { Paperclip } from "lucide-react"; // Import the Paperclip icon
 
 const LoadDetailPage = () => {
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+    const [isDocsDialogOpen, setIsDocsDialogOpen] = useState<boolean>(false);
+
     const [loadData, setLoadData] = useState<Load | null>(null);
     const [carrierData, setCarrierData] = useState<Carrier | null>(null);
     const [shipmentData, setShipmentData] = useState<Shipment | null>(null);
@@ -37,6 +43,65 @@ const LoadDetailPage = () => {
     const carrierLoadable = useRecoilValueLoadable(carrierListState);
     const resetSelectedCarrier = useResetRecoilState(selectedCarrierState);
     const router = useRouter();
+
+
+
+    const [files, setFiles] = useState<File[]>([]);
+    useEffect(() => {
+        // Cleanup function to clear the files state on unmount
+        return () => {
+            setFiles([]);
+        };
+    }, []);
+    const [uploading, setUploading] = useState(false);
+    const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+    const handleFileUpload = (files: File[]) => {
+        setFiles(files);
+        console.log("selected files", files);
+    };
+    const uploadFilesToFirebase = async () => {
+        setUploading(true);
+        try {
+            const uploadedFileUrls = await uploadMultipleFilesToFirebase(files, id, `Load/${id}`);
+            setUploadedUrls(uploadedFileUrls);
+            console.log("Files uploaded successfully:", uploadedFileUrls);
+            toast({
+                title: 'Success',
+                description: 'Files uploaded successfully!',
+            });
+            const updatedAttachedDocs = [...(loadData?.attachedDocs || []), ...uploadedFileUrls];
+
+            const body = {
+                attachedDocs: updatedAttachedDocs,
+            };
+            const response = await updateLoad(id, body);
+            if (response.success) {
+                setLoadData(response.load);
+                toast({
+                    title: 'Success',
+                    description: 'Documents are uploaded successfully!',
+                });
+            } else {
+                toast({
+                    title: 'Updation Failed',
+                    description: response.message || 'An unexpected error occurred while uploading docs.',
+                    variant: 'destructive',
+                });
+                setSuccessMessage(null);
+            }
+            setFiles([]);
+        } catch (error) {
+            console.error("Error uploading files:", error);
+            toast({
+                title: 'Error',
+                description: "Error uploading files:",
+                variant: 'destructive',
+            });
+        } finally {
+            setUploading(false);
+            setFiles([]);
+        }
+    };
     const [originalItemInfo, setOriginalItemInfo] = useState({
         itemDescription: '',
         serviceType: '',
@@ -278,8 +343,44 @@ const LoadDetailPage = () => {
 
     };
 
+    const handleDeleteDoc = async (url: string) => {
+        try {
+            const response = await deleteAttachedDoc(id, url);
+            if (response.success) {
+                // Update the load data by removing the deleted document URL from the attachedDocs array
+                setLoadData((prevLoadData) => {
+                    if (!prevLoadData) return null;  // If there's no load data, return null
+
+                    return {
+                        ...prevLoadData,
+                        attachedDocs: prevLoadData.attachedDocs?.filter((doc) => doc !== url) || [],
+                    };
+                });
+
+                toast({
+                    title: 'Success',
+                    description: 'Document deleted successfully!',
+                });
+            } else {
+                toast({
+                    title: 'Error',
+                    description: response.message || 'Failed to delete document.',
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('Error deleting document:', error);
+            toast({
+                title: 'Error',
+                description: 'An error occurred while deleting the document.',
+                variant: 'destructive',
+            });
+        }
+    };
+
     const handleRefresh = () => {
         fetchData();
+        setFiles([]);
     };
 
     if (loading) {
@@ -290,30 +391,74 @@ const LoadDetailPage = () => {
         );
     }
 
+
+
+
+
     return (
-        <>
-            <div className="p-6 bg-gray-50  ">
-                <h1 className="text-xl font-bold mb-4">Load Details</h1>
-                <div className="flex justify-start w-full max-w-md h-[10px] mb-4">
+        <div className=' p-10'>
+            <h1 className='font-bold text-xl'>Load Details</h1>
+            <div className="flex justify-between ">
+                <div className="mt-10 flex justify-start w-full max-w-md h-[10px] mb-4">
                     <Button className="mr-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={handleRefresh} >Refresh Data</Button>
-                    <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
+                    <Button className="mr-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
                     <AuditHistoryDialog
                         open={isDialogOpen}
                         onClose={() => setIsDialogOpen(false)}
                         loadId={id}
                     />
+                    <Button
+                        className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 flex items-center gap-2"
+                        onClick={() => setIsDocsDialogOpen(true)}
+                    >
+                        <Paperclip className="w-4 h-4" /> {/* Render the Paperclip icon */}
+                        Attached Docs
+                    </Button>
+
+                    <AttachedDocsDialog
+                        open={isDocsDialogOpen}
+                        onClose={() => setIsDocsDialogOpen(false)}
+                        urls={loadData?.attachedDocs ?? []}
+                        loadId={id} // Pass loadId to handle document deletion
+                        onDelete={handleDeleteDoc} // Pass delete function to dialog
+                    />
+                </div>
+
+                <div className="bg-white shadow-sm rounded-md border border-gray-200 p-4 w-56">
+                    <div className="flex justify-between items-center mb-2">
+                        {selectedStatus && (
+                            <span
+                                className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === 'Completed' ? 'bg-green-500 text-white' :
+                                    selectedStatus === 'InTransit' ? 'bg-blue-500 text-white' :
+                                        selectedStatus === 'Cancelled' ? 'bg-red-500 text-white' :
+                                            selectedStatus === 'Upcoming' ? 'bg-gray-500 text-gray-100' :
+                                                ''
+                                    }`}
+                            >
+                                {selectedStatus}
+                            </span>
+                        )}
+                    </div>
+                    <select
+                        value={selectedStatus || ''}
+                        onChange={(e) => handleStatusChange(e.target.value)}
+                        disabled={!carrierData}
+                        className="p-2 border border-gray-300 rounded-md w-full"
+                    >
+                        <option value="">Select Status</option>
+                        {statusOptions.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
-
-            <div className="p-10 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-                <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
+            <div className="mt-5 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                <div className="bg-white shadow-md rounded-md border border-gray-100 p-4">
                     <h2 className="text-lg font-semibold mb-2">Shipment Info</h2>
                     <p><strong>Shippent Id:</strong> {shipmentData?.shipmentID}</p>
                     <p><strong>Service Type:</strong> {shipmentData?.serviceType}</p>
-
                 </div>
-
                 <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
                     <h2 className="text-lg font-semibold mb-2">Carrier Info</h2>
                     {isCarrierEditing ? (
@@ -352,35 +497,6 @@ const LoadDetailPage = () => {
                             )}
                         </>
                     )}
-                </div>
-
-                <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <h2 className="text-lg font-semibold">Status</h2>
-                        {selectedStatus && (
-                            <span
-                                className={`px-2 py-1 rounded-full text-xs font-semibold ${selectedStatus === 'Completed' ? 'bg-green-500 text-white' :
-                                    selectedStatus === 'InTransit' ? 'bg-blue-500 text-white' :
-                                        selectedStatus === 'Cancelled' ? 'bg-red-500 text-white' :
-                                            selectedStatus === 'Upcoming' ? 'bg-gray-500 text-gray-100' :
-                                                ''
-                                    }`}
-                            >
-                                {selectedStatus}
-                            </span>
-                        )}
-                    </div>
-                    <select
-                        value={selectedStatus || ''}
-                        onChange={(e) => handleStatusChange(e.target.value)}
-                        disabled={!carrierData}
-                        className="p-2 border border-gray-300 rounded-md w-full"
-                    >
-                        <option value="">Select Status</option>
-                        {statusOptions.map((status) => (
-                            <option key={status} value={status}>{status}</option>
-                        ))}
-                    </select>
                 </div>
                 {
                     isPickDropEditing ? <>
@@ -425,11 +541,43 @@ const LoadDetailPage = () => {
 
                 }
 
-                <div className="md:col-span-2 bg-white shadow-md rounded-md border border-gray-200 p-4">
+                <div className="w-full max-w-4xl mx-auto min-h-56 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+                    <FileUpload onChange={handleFileUpload} />
+                    {files.length > 0 && (
+                        <div className="mt-4">
+                            <Button
+                                className="text-white px-4 py-2 rounded"
+                                onClick={uploadFilesToFirebase}
+                            // disabled={uploading}
+                            >
+                                {uploading ? "Uploading..." : `Upload Files For Load ${id}`}
+                            </Button>
+                        </div>
+                    )}
+                    {/* {uploadedUrls.length > 0 && (
+                    <div className="mt-4">
+                        <h3>Uploaded Files:</h3>
+                        <ul>
+                            {uploadedUrls.map((url, idx) => (
+                                <li key={idx}>
+                                    <a href={url} target="_blank" rel="noopener noreferrer">
+                                        {url}
+                                    </a>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )} */}
+                </div>
+
+                <div className="w-full max-w-4xl mx-auto min-h-56  md:col-span-2 bg-white shadow-md rounded-md border border-gray-200 p-4">
                     <CommentSection />
                 </div>
+
             </div>
-        </>
+
+
+        </div>
     );
 };
 

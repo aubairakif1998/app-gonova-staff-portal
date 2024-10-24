@@ -16,6 +16,7 @@ export interface ILoad extends Document {
     shipmentRefId: string;
     assignedCarrierMC?: string;
     agentStaffMemberId: string;
+    attachedDocs?: string[];
     createdBy: string;
 }
 
@@ -48,6 +49,7 @@ const LoadSchema: Schema<ILoad> = new Schema(
         shipmentRefId: { type: String, required: true },
         assignedCarrierMC: { type: String },
         agentStaffMemberId: { type: String, required: true },
+        attachedDocs: { type: [String], },
         createdBy: { type: String, required: true }
     },
     {

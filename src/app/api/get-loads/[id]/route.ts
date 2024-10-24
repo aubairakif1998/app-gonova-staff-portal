@@ -68,50 +68,75 @@ export async function GET(request: Request) {
     }
 }
 
-// PATCH function to update Load details using loadId instead of _id
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
     const url = new URL(request.url);
     const loadId = url.pathname.split('/').pop();  // Get loadId from the URL
     const updates = await request.json();
-
     if (!loadId || !updates || typeof updates !== 'object' || Object.keys(updates).length === 0) {
         return NextResponse.json({ error: 'Missing required parameters or invalid request body' }, { status: 400 });
     }
-
     await dbConnect();
     const session = await getServerSession(authOptions);
     const _user = session?.user;
-
     if (!session || !_user) {
         return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
-
     try {
-        // Find the load by loadId instead of _id
         const existingLoad = await LoadModel.findOne({ loadId });
-
         if (!existingLoad) {
             return NextResponse.json({ error: 'Load not found' }, { status: 404 });
         }
-
-        // Perform update
         const updatedLoad = await LoadModel.findOneAndUpdate({ loadId }, { $set: updates }, { new: true });
-
         if (!updatedLoad) {
             return NextResponse.json({ error: 'Load not found after update' }, { status: 404 });
         }
-
-        // Determine changes
         const changes = Object.keys(updates).map(field => ({
             field,
             oldValue: existingLoad.get(field as keyof typeof existingLoad) || 'N/A',
             newValue: updates[field],
         }));
-
-        // Log changes to the audit history
         await logAuditHistory(loadId, 'Load', _user.email, changes);
-
         return NextResponse.json({ success: true, message: 'Load updated successfully', load: updatedLoad });
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+
+
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+    const url = new URL(request.url);
+    const loadId = url.pathname.split('/').pop();
+    const { attachedDocUrl } = await request.json();
+    if (!loadId || !attachedDocUrl) {
+        return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    }
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
+    if (!session || !_user) {
+        return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    try {
+        const load = await LoadModel.findOne({ loadId });
+        if (!load) {
+            return NextResponse.json({ error: 'Load not found' }, { status: 404 });
+        }
+        if (!load.attachedDocs?.includes(attachedDocUrl)) {
+            return NextResponse.json({ error: 'Document URL not found in attached documents' }, { status: 404 });
+        }
+        load.attachedDocs = load.attachedDocs.filter(doc => doc !== attachedDocUrl);
+        await load.save();
+        await logAuditHistory(loadId, 'Load', _user.email, [
+            {
+                field: 'attachedDocs',
+                oldValue: attachedDocUrl,
+                newValue: 'Deleted',
+            },
+        ]);
+        return NextResponse.json({ success: true, message: 'Document deleted successfully', load });
     } catch (error) {
         console.error('An unexpected error occurred:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

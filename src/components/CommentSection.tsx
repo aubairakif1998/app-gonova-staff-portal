@@ -71,7 +71,7 @@ const CommentSection = () => {
             {isLoadingComment ? (
                 <p>Loading comments...</p>
             ) : (
-                <ScrollArea className="h-40 w-full">
+                <ScrollArea className="h-64 w-full">
                     {comments.length === 0 ? <p className='flex justify-center'>No comments yet.</p> : comments.map((comment) => (
                         <div
                             key={comment._id}

@@ -17,5 +17,6 @@ export interface Load {
     createdBy: string;
     createdAt?: string;
     updatedAt?: string;
+    attachedDocs?: string[]
     __v?: number;
 }
