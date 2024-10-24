@@ -29,5 +29,6 @@ export interface StandAloneLoad {
     createdBy: string;
     createdAt?: string;
     updatedAt?: string;
+    attachedDocs?: string[]
     __v?: number;
 }

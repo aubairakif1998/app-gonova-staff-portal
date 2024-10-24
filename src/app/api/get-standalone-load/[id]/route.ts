@@ -130,3 +130,43 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+
+
+
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+    const url = new URL(request.url);
+    const standaloneloadId = url.pathname.split('/').pop();
+    const { attachedDocUrl } = await request.json();
+    if (!standaloneloadId || !attachedDocUrl) {
+        return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    }
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+    const _user = session?.user;
+    if (!session || !_user) {
+        return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+    try {
+        const load = await StandAloneModel.findOne({ standaloneId: standaloneloadId });
+        if (!load) {
+            return NextResponse.json({ error: 'StandAloneLoad not found' }, { status: 404 });
+        }
+        if (!load.attachedDocs?.includes(attachedDocUrl)) {
+            return NextResponse.json({ error: 'Document URL not found in attached documents' }, { status: 404 });
+        }
+        load.attachedDocs = load.attachedDocs.filter(doc => doc !== attachedDocUrl);
+        await load.save();
+        await logAuditHistory(standaloneloadId, 'StandAloneLoad', _user.email, [
+            {
+                field: 'attachedDocs',
+                oldValue: attachedDocUrl,
+                newValue: 'Deleted',
+            },
+        ]);
+        return NextResponse.json({ success: true, message: 'Document deleted successfully', load });
+    } catch (error) {
+        console.error('An unexpected error occurred:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

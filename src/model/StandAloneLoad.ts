@@ -28,6 +28,7 @@ export interface IStandAloneLoad extends Document {
     shipperCompanyName: string;
     assignedCarrierMC?: string;
     agentStaffMemberId: string;
+    attachedDocs?: string[];
     createdBy: string;
 }
 
@@ -75,6 +76,7 @@ const StandAloneLoadSchema: Schema<IStandAloneLoad> = new Schema({
         type: String,
     },
     agentStaffMemberId: { type: String, required: true },
+    attachedDocs: { type: [String], },
     createdBy: { type: String, required: true }
 }, {
     timestamps: true,

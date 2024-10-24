@@ -127,3 +127,25 @@ export async function deleteStandAloneLoad(id: string | string[]) {
         return { success: false, message };
     }
 }
+
+
+
+export async function deleteAttachedDoc(loadId: string | string[], attachedDocUrl: string) {
+    const response = await fetch(`/api/get-standalone-load/${loadId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ attachedDocUrl }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+        return { "success": true, message: "deleted successfully" }
+        // Handle success UI updates
+    } else {
+        return { "success": false, message: "deletion failed" }
+        // Handle error UI updates
+    }
+}

@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from 'react';
-import { fetchStandAloneLoadById, updateStandAloneLoad, deleteStandAloneLoad } from '@/services/standAloneLoadService'; // Assuming this is your service
+import { deleteAttachedDoc, fetchStandAloneLoadById, updateStandAloneLoad, deleteStandAloneLoad } from '@/services/standAloneLoadService'; // Assuming this is your service
 import { StandAloneLoad } from '@/Interfaces/StandAloneLoad';
 import { useParams, useRouter } from 'next/navigation';
 import { Carrier } from '@/Interfaces/carrier';
@@ -15,7 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { date } from 'zod';
 import { AuditHistoryDialog } from '@/components/AuditHistoryDialog';
-
+import { FileUpload } from "@/components/ui/file-upload";
+import { Paperclip } from "lucide-react";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -28,6 +29,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import CommentSection from '@/components/CommentSection';
+import { uploadMultipleFilesToFirebase } from '@/services/firebaseStorageService';
+import { AttachedDocsDialog } from '@/components/AttachedDocs';
 const statusOptions = ["Upcoming", "InTransit", "Completed", "Cancelled"];
 const serviceTypeOptions = ["LTL", "Full Truckload", "Small Shipments"];
 const packagingTypeOptions = ["Pallet", "Box", "Crate", "Bundle", "Drum", "Roll", "Bale"];
@@ -48,6 +51,7 @@ const parseDate = (dateStr: any) => {
 };
 const StandALoneLoadDetailPage = () => {
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+    const [isDocsDialogOpen, setIsDocsDialogOpen] = useState<boolean>(false);
     const [standAloneLoadData, setStandAloneLoadData] = useState<StandAloneLoad | null>(null);
     const [carrierData, setCarrierData] = useState<Carrier | null>(null);
     const [shipperData, setShipperData] = useState<Shipper | null>(null);
@@ -63,6 +67,14 @@ const StandALoneLoadDetailPage = () => {
     const carrierLoadable = useRecoilValueLoadable(carrierListState);
     const resetSelectedCarrier = useResetRecoilState(selectedCarrierState);
     const router = useRouter();
+
+    const [files, setFiles] = useState<File[]>([]);
+    useEffect(() => {
+        // Cleanup function to clear the files state on unmount
+        return () => {
+            setFiles([]);
+        };
+    }, []);
     const [originalItemInfo, setOriginalItemInfo] = useState({
         itemDescription: '',
         serviceType: '',
@@ -130,7 +142,12 @@ const StandALoneLoadDetailPage = () => {
             resetSelectedCarrier();
         };
     }, [fetchData, resetSelectedCarrier]);
-
+    const [uploading, setUploading] = useState(false);
+    const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
+    const handleFileUpload = (files: File[]) => {
+        setFiles(files);
+        console.log("selected files", files);
+    };
     const handleCarrierEditing = () => {
         setIsCarrierEditing(true);
     };
@@ -343,7 +360,49 @@ const StandALoneLoadDetailPage = () => {
         }
     };
 
+    const uploadFilesToFirebase = async () => {
+        setUploading(true);
+        try {
+            const uploadedFileUrls = await uploadMultipleFilesToFirebase(files, id, `Load/${id}`);
+            setUploadedUrls(uploadedFileUrls);
+            console.log("Files uploaded successfully:", uploadedFileUrls);
+            toast({
+                title: 'Success',
+                description: 'Files uploaded successfully!',
+            });
+            const updatedAttachedDocs = [...(standAloneLoadData?.attachedDocs || []), ...uploadedFileUrls];
 
+            const body = {
+                attachedDocs: updatedAttachedDocs,
+            };
+            const response = await updateStandAloneLoad(id, body);
+            if (response.success) {
+                setStandAloneLoadData(response.standAloneLoad);
+                toast({
+                    title: 'Success',
+                    description: 'Documents are uploaded successfully!',
+                });
+            } else {
+                toast({
+                    title: 'Updation Failed',
+                    description: response.message || 'An unexpected error occurred while uploading docs.',
+                    variant: 'destructive',
+                });
+                setSuccessMessage(null);
+            }
+            setFiles([]);
+        } catch (error) {
+            console.error("Error uploading files:", error);
+            toast({
+                title: 'Error',
+                description: "Error uploading files:",
+                variant: 'destructive',
+            });
+        } finally {
+            setUploading(false);
+            setFiles([]);
+        }
+    };
 
 
 
@@ -393,37 +452,43 @@ const StandALoneLoadDetailPage = () => {
 
     const handleRefresh = () => {
         fetchData();
+        setFiles([]);
     };
 
-    const handleDeleteLoad = async () => {
+    const handleDeleteDoc = async (url: string) => {
         try {
-            const response = await deleteStandAloneLoad(id);
-
+            const response = await deleteAttachedDoc(id, url);
             if (response.success) {
-                toast({
-                    title: 'Deleted',
-                    description: response.message || 'Load deleted successfully!',
+                // Update the load data by removing the deleted document URL from the attachedDocs array
+                setStandAloneLoadData((prevLoadData) => {
+                    if (!prevLoadData) return null;  // If there's no load data, return null
+
+                    return {
+                        ...prevLoadData,
+                        attachedDocs: prevLoadData.attachedDocs?.filter((doc) => doc !== url) || [],
+                    };
                 });
-                router.replace('/loads'); // Navigate to a list or home page after deletion
-            } else {
-                setError(response.message || 'Failed to delete the load');
+
                 toast({
-                    title: 'Deletion Failed',
-                    description: response.message || 'An unexpected error occurred while deleting the load.',
+                    title: 'Success',
+                    description: 'Document deleted successfully!',
+                });
+            } else {
+                toast({
+                    title: 'Error',
+                    description: response.message || 'Failed to delete document.',
                     variant: 'destructive',
                 });
             }
         } catch (error) {
-            console.error('Error deleting load:', error);
-            setError('An unexpected error occurred while deleting the load.');
+            console.error('Error deleting document:', error);
             toast({
-                title: 'Deletion Failed',
-                description: 'An unexpected error occurred while deleting the load.',
+                title: 'Error',
+                description: 'An error occurred while deleting the document.',
                 variant: 'destructive',
             });
         }
     };
-
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen">
@@ -436,16 +501,29 @@ const StandALoneLoadDetailPage = () => {
         <div className="p-6 bg-gray-50 min-h-screen flex flex-col items-start space-y-4">
             <h1 className="text-xl font-bold mb-4">StandAloneLoad Details</h1>
 
-            {/* Action Bar */}
             <div className="flex justify-start w-full max-w-md mb-4">
-                <Button onClick={handleRefresh} className="mr-2">Refresh Data</Button>
-                <Button className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
+                <Button onClick={handleRefresh} className="mr-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100">Refresh Data</Button>
+                <Button className="mr-2 bg-white text-gray-700 border border-gray-300 hover:bg-gray-100" onClick={() => setIsDialogOpen(true)}>View Audit History</Button>
                 <AuditHistoryDialog
                     open={isDialogOpen}
                     onClose={() => setIsDialogOpen(false)}
                     loadId={id}
                 />
+                <Button
+                    className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={() => setIsDocsDialogOpen(true)}
+                >
+                    <Paperclip className="w-4 h-4" /> {/* Render the Paperclip icon */}
+                    Attached Docs
+                </Button>
 
+                <AttachedDocsDialog
+                    open={isDocsDialogOpen}
+                    onClose={() => setIsDocsDialogOpen(false)}
+                    urls={standAloneLoadData?.attachedDocs ?? []}
+                    loadId={id} // Pass loadId to handle document deletion
+                    onDelete={handleDeleteDoc}
+                />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <div className="bg-white shadow-md rounded-md border border-gray-200 p-4">
@@ -630,7 +708,20 @@ const StandALoneLoadDetailPage = () => {
                     </div>
                 }
 
-
+                <div className="w-full max-w-4xl mx-auto min-h-56 border border-dashed bg-white dark:bg-black border-neutral-200 dark:border-neutral-800 rounded-lg p-4">
+                    <FileUpload onChange={handleFileUpload} />
+                    {files.length > 0 && (
+                        <div className="mt-4">
+                            <Button
+                                className="text-white px-4 py-2 rounded"
+                                onClick={uploadFilesToFirebase}
+                            // disabled={uploading}
+                            >
+                                {uploading ? "Uploading..." : `Upload Files For Load ${id}`}
+                            </Button>
+                        </div>
+                    )}
+                </div>
                 <div className="md:col-span-2 bg-white shadow-md rounded-md border border-gray-200 p-4">
                     <CommentSection />
                 </div>

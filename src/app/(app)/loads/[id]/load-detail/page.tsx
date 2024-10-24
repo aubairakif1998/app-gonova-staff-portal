@@ -22,7 +22,7 @@ const packagingTypeOptions = ["Pallet", "Box", "Crate", "Bundle", "Drum", "Roll"
 import { FileUpload } from "@/components/ui/file-upload";
 import { uploadMultipleFilesToFirebase } from '@/services/firebaseStorageService';
 import { AttachedDocsDialog } from '@/components/AttachedDocs';
-import { Paperclip } from "lucide-react"; // Import the Paperclip icon
+import { Paperclip } from "lucide-react";
 
 const LoadDetailPage = () => {
     const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -554,20 +554,6 @@ const LoadDetailPage = () => {
                             </Button>
                         </div>
                     )}
-                    {/* {uploadedUrls.length > 0 && (
-                    <div className="mt-4">
-                        <h3>Uploaded Files:</h3>
-                        <ul>
-                            {uploadedUrls.map((url, idx) => (
-                                <li key={idx}>
-                                    <a href={url} target="_blank" rel="noopener noreferrer">
-                                        {url}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )} */}
                 </div>
 
                 <div className="w-full max-w-4xl mx-auto min-h-56  md:col-span-2 bg-white shadow-md rounded-md border border-gray-200 p-4">
